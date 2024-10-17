@@ -1,0 +1,21 @@
+{
+    "version": "2.6.3",
+    "name": "neebplugins/wc-place-order-without-payment",
+    "description": "WC Place Order Without Payment",
+    "type": "wordpress-plugin",
+    "license": "gpl2.0",
+    "autoload": {
+        "psr-4": {
+            "WPOWP\\": "inc/"           
+        }
+    },
+    "authors": [
+        {
+            "name": "nitin247",
+            "email": "nitin247@outlook.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    }
+}

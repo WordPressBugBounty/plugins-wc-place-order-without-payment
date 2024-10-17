@@ -1,0 +1,23 @@
+body.wctr-admin {    
+
+    font-size: 0.875rem !important;
+    line-height: 1.4 !important;    
+}
+
+.wctr-admin .card-body {
+    padding: 0.5rem !important;    
+}
+
+.wctr-admin .table th,
+.wctr-admin .table td {
+    padding: 0.3rem !important;    
+}
+
+.wctr-admin .form-control, .wctr-admin .form-select {
+    font-size: 0.875rem !important;       
+}
+
+.wctr-admin .form-label {
+    font-weight: 500 !important;    
+}
+

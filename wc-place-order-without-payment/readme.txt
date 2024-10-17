@@ -4,8 +4,8 @@ Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: Place order without payment, Checkout without payment, Request Quote, Pre-Sale Orders, WooCommerce complete orders without payment
 Requires at least: 6.0
 Tested up to: 6.6
-Stable tag: 2.6.2
-Version: 2.6.2
+Stable tag: 2.6.3
+Version: 2.6.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -75,9 +75,13 @@ Unlock Seamless Shopping with '<a href="https://nitin247.com/plugin/woocommerce-
 
 6- Filters to exclude Products, Categories from Place Order function 
 
+7- Custom Rules for Place order button
+
+8- Custom Rules for Request Quote button 
+
 **Coming Soon**
 
-* Order Approval 
+* Order Approval for WooCommerce
 
 
 == Installation ==
@@ -128,6 +132,8 @@ For support or any inquiries, please contact us at <a href="mailto:nitin247@outl
 Enjoy using the Place order without payment plugin!
 
 == Changelog ==
+** V 2.6.3 **
+* New Feature - Rule-Based Place Order Without Paument
 ** V 2.6.2 **
 * Fix Order status udate after Order Pay
 ** V 2.6.1 **
@@ -172,5 +178,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.6.2 = 
-Fixed Order Status Update
+= 2.6.3 = 
+Rule-Based Place Order functionality

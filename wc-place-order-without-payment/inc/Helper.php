@@ -202,7 +202,7 @@ class Helper {
 		// Loop through categories and get posts for the specified post type
 		foreach ( $categories as $category ) {
 			$results[] = array(
-				'id'   => $category->term_id,
+				'id'   => $category->name,
 				'text' => $category->name,
 			);
 		}
@@ -232,7 +232,7 @@ class Helper {
 		if ( ! empty( $tags ) ) {
 			foreach ( $tags as $tag ) {
 				$results[] = array(
-					'id'   => $tag->term_id,
+					'id'   => $tag->name,
 					'text' => $tag->name,
 				);
 			}
@@ -271,28 +271,30 @@ class Helper {
 	}
 
 	public static function term_details( $ids, $taxonomy = 'product_cat' ) {
-		
-		$results  = array();
-		$term_ids = $ids;
+		$results = array();
 
-		// Check if product_ids is provided and is an array
-		if ( ! empty( $term_ids ) && is_array( $term_ids ) ) {
+		foreach ( $ids as $id ) {
+			// Attempt to get term by ID, first as an integer
+			$term = '';
 
-			foreach ( $term_ids as $term_id ) {
+			if ( ! $term && is_numeric( $id ) ) {
+				$term = get_term( (int) $id, $taxonomy );
+			}
 
-				$term = get_term( $term_id, $taxonomy );
+			// If not found, try getting by slug (text ID)
+			if ( ! $term && is_string( $id ) ) {
+				$term = get_term_by( 'name', $id, $taxonomy );
+			}
 
-				if ( isset( $term->name ) ) {
-					$results[] = array(
-						'id'   => $term->term_id,
-						'text' => $term->name,
-					);
-				}
+			if ( $term ) {
+				$results[] = array(
+					'id'   => $term->term_id,
+					'text' => $term->name,
+				);
 			}
 		}
 
 		return $results;
-
 	}
 
 	public function shorten( $input_array, $key_field, $value_field ) {

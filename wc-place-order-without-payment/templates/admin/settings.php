@@ -9,6 +9,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 
 ?>
 <div class="container">
+	<h1><?php esc_html_e( 'Settings', WPOWP_TEXT_DOMAIN ); ?></h1>
 	<form id="<?php echo esc_attr( WPOWP_PLUGIN_PREFIX ); ?>settings-form" method="post" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>">
 		<table class="form-table wpowp-content-table">
 			<tbody>

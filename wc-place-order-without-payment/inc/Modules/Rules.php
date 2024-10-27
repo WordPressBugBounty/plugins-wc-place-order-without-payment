@@ -175,7 +175,6 @@ class Rules {
 
 		// Get the cart details
 		$cart_data = array(
-			'payment_method'    => WC()->session->get( 'chosen_payment_method' ),
 			'payment_method'    => '', // No payment method at cart stage
 			'product_name'      => array_reduce(
 				WC()->cart->get_cart(),
@@ -264,13 +263,11 @@ class Rules {
 		$condition = $rules[0]['condition'] ?? 'AND'; // Default condition
 
 		foreach ( $rules as $index => $rule ) {
-			$item           = $rule['item'];
-			$operator       = $rule['operator'];
-			$value          = $rule['value'];
-			$rule_condition = $rule['condition'];
+			$item     = $rule['item'];
+			$operator = $rule['operator'];
+			$value    = $rule['value'];
 
 			$data_value = $this->get_cart_data_value( $item, $order_data );
-
 			$rule_valid = $this->evaluate_rule( $data_value, $operator, $value );
 
 			// Handle AND/OR conditions
@@ -303,12 +300,12 @@ class Rules {
 				return $cart_data['payment_method'];
 			case 'product_name':
 				return array_keys( $cart_data['product_name'] );
-			case 'product_variation':
-				return $cart_data['product_variation'];
+			case 'product_variation':				
+				return array_keys( $cart_data['product_variation'] );
 			case 'product_category':
-				return array_keys( $cart_data['product_category'] );
+				return $cart_data['product_category'];
 			case 'product_tag':
-				return array_keys( $cart_data['product_tag'] );
+				return $cart_data['product_tag'];
 			case 'user_role':
 				return $cart_data['user_role'];
 			default:
@@ -334,9 +331,9 @@ class Rules {
 				return $data_value > $value;
 			case '<':
 				return $data_value < $value;
-			case 'in':
+			case 'in':				
 				return is_array( $data_value ) ? array_intersect( $data_value, $value ) : in_array( $data_value, $value, true );
-			case 'in':
+			case 'not_in':
 				return is_array( $data_value ) ? ! array_intersect( $data_value, $value ) : ! in_array( $data_value, $value, true );
 			default:
 				return false;

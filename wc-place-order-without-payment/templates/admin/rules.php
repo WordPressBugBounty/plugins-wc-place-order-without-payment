@@ -15,7 +15,7 @@ $rules_instance = WPOWP_Rules::get_instance();
 
 <div class="container">
 		
-	<h2><?php esc_html_e( 'Place Order Rules', WPOWP_TEXT_DOMAIN ); ?></h2>
+	<h1><?php esc_html_e( 'Rules', WPOWP_TEXT_DOMAIN ); ?></h1>
 	<p><?php esc_html_e( 'The options below facilitate the configuration of Place Order Without Pyment for WooCommerce PRO, enhancing customer engagement.', WPOWP_TEXT_DOMAIN ); ?></p>
 
 	<div id="group-container"></div>

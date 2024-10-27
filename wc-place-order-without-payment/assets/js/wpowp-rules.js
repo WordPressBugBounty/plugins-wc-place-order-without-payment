@@ -84,6 +84,7 @@ jQuery(function ($) {
                 ruleElement.find('.value-input, .value-select').hide();
 
                 var selectElement = ruleElement.find('.multiselect-value');
+                selectElement.empty(); // Clear existing options
                 var savedProductIds = value;
 
                 // Initialize Select2 for product_name with AJAX search
@@ -151,6 +152,7 @@ jQuery(function ($) {
                 ruleElement.find('.value-input, .value-select').hide();
 
                 var selectElement = ruleElement.find('.multiselect-value');
+                selectElement.empty(); // Clear existing options
                 var savedProductIds = value;
 
                 // Initialize Select2 for product_name with AJAX search
@@ -218,6 +220,7 @@ jQuery(function ($) {
                 ruleElement.find('.value-input, .value-select').hide();
 
                 var selectElement = ruleElement.find('.multiselect-value');
+                selectElement.empty(); // Clear existing options
                 var savedProductIds = value;
 
                 // Initialize Select2 for product_name with AJAX search
@@ -248,6 +251,7 @@ jQuery(function ($) {
                 if (savedProductIds) {
 
                     if (Array.isArray(savedProductIds)) {
+                        console.log( savedProductIds );
                         // Manually trigger the loading of saved product details and set them as selected options
                         var selectElement = ruleElement.find('.multiselect-value');
 
@@ -262,6 +266,9 @@ jQuery(function ($) {
                             },
                             success: function (response) {
                                 if (response && response.data) {
+
+                                    console.log( response.data );
+
                                     var selectedOptions = $.map(response.data, function (product) {
                                         return { id: product.id, text: product.text };
                                     });
@@ -285,6 +292,7 @@ jQuery(function ($) {
                 ruleElement.find('.value-input, .value-select').hide();
 
                 var selectElement = ruleElement.find('.multiselect-value');
+                selectElement.empty(); // Clear existing options
                 var savedProductIds = value;
 
                 // Initialize Select2 for product_name with AJAX search

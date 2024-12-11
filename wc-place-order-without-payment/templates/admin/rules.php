@@ -51,8 +51,8 @@ $rules_instance = WPOWP_Rules::get_instance();
 					</a>
 				</div>
 				<div class="d-flex align-items-center">
-					<a class="btn btn-sm btn-link remove-group-btn" title="<?php echo esc_attr( 'Remove Group', WPOWP_TEXT_DOMAIN ); ?>">
-						<i class="fas fa-trash-alt"></i>
+					<a class="btn btn-sm remove-group-btn" title="<?php echo esc_attr( 'Remove Group', WPOWP_TEXT_DOMAIN ); ?>">
+						<i class="dashicons dashicons-remove text-danger"></i>
 					</a>
 				</div>
 			</div>
@@ -133,8 +133,8 @@ $rules_instance = WPOWP_Rules::get_instance();
 
 			<!-- Remove Rule Button -->
 			<div class="col-md-1 text-end">
-				<a href="javascript:void(0)" class="btn btn-sm btn-link remove-rule-btn" title="<?php echo esc_attr( 'Remove Rule', WPOWP_TEXT_DOMAIN ); ?>">
-					<i class="fas fa-trash-alt"></i>
+				<a href="javascript:void(0)" class="btn btn-sm remove-rule-btn" title="<?php echo esc_attr( 'Remove Rule', WPOWP_TEXT_DOMAIN ); ?>">
+					<i class="dashicons dashicons-remove text-danger"></i>
 				</a>
 			</div>
 		</div>

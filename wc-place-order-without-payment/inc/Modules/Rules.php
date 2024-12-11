@@ -3,7 +3,7 @@
 /**
  * @package     Thank You Page
  * @since       4.1.6
-*/
+ */
 
 namespace WPOWP\Modules;
 
@@ -35,54 +35,55 @@ class Rules {
 		// Define options and option groups
 		$this->options = array(
 			'products' => array(
-				'product_name'      => __( 'Product ', 'wc-thanks-redirect' ),
-				'product_variation' => __( 'Product Variation', 'wc-thanks-redirect' ),
-				'product_category'  => __( 'Product Category', 'wc-thanks-redirect' ),
-				'product_tag'       => __( 'Product Tag', 'wc-thanks-redirect' ),
+				'product_name'      => __( 'Product ', 'wpowp' ),
+				'product_variation' => __( 'Product Variation', 'wpowp' ),
+				'product_category'  => __( 'Product Category', 'wpowp' ),
+				'product_tag'       => __( 'Product Tag', 'wpowp' ),
 			),
 			'users'    => array(
-				'user_role' => __( 'User Role ', 'wc-thanks-redirect' ),
+				'user_role' => __( 'User Role ', 'wpowp' ),
+				// 'logged_in' => __( 'Logged In', 'wpowp' ),
 			),
 		);
 
 		// Define operators for each option type
 		$this->operators = array(
 			'default'            => array(
-				'in'     => __( 'Includes', 'wc-thanks-redirect' ),
-				'not_in' => __( 'Does Not Include', 'wc-thanks-redirect' ),
-				// '='  => __( 'Equals', 'wc-thanks-redirect' ),
-				// '!=' => __( 'Not Equals', 'wc-thanks-redirect' ),
+				'in'     => __( 'Includes', 'wpowp' ),
+				'not_in' => __( 'Does Not Include', 'wpowp' ),
+				// 'is'     => __( 'Is', 'wpowp' ),
+				// 'is_not' => __( 'Is Not', 'wpowp' ),
 			),
 			'product_name'       => array(
-				'='      => __( 'Is', 'wc-thanks-redirect' ),
-				'!='     => __( 'Is Not', 'wc-thanks-redirect' ),
-				'in'     => __( 'Includes', 'wc-thanks-redirect' ),
-				'not_in' => __( 'Does Not Include', 'wc-thanks-redirect' ),
+				'='      => __( 'Is', 'wpowp' ),
+				'!='     => __( 'Is Not', 'wpowp' ),
+				'in'     => __( 'Includes', 'wpowp' ),
+				'not_in' => __( 'Does Not Include', 'wpowp' ),
 			),
 			'order_total'        => array(
-				'='  => __( 'Equals', 'wc-thanks-redirect' ),
-				'!=' => __( 'Not Equals', 'wc-thanks-redirect' ),
-				'>'  => __( 'Greater Than', 'wc-thanks-redirect' ),
-				'<'  => __( 'Less Than', 'wc-thanks-redirect' ),
+				'='  => __( 'Equals', 'wpowp' ),
+				'!=' => __( 'Not Equals', 'wpowp' ),
+				'>'  => __( 'Greater Than', 'wpowp' ),
+				'<'  => __( 'Less Than', 'wpowp' ),
 			),
 			'order_status'       => array(
-				'='  => __( 'Is', 'wc-thanks-redirect' ),
-				'!=' => __( 'Is Not', 'wc-thanks-redirect' ),
+				'='  => __( 'Is', 'wpowp' ),
+				'!=' => __( 'Is Not', 'wpowp' ),
 			),
 			'customer_email'     => array(
-				'='    => __( 'Equals', 'wc-thanks-redirect' ),
-				'!='   => __( 'Not Equals', 'wc-thanks-redirect' ),
-				'like' => __( 'Contains', 'wc-thanks-redirect' ),
+				'='    => __( 'Equals', 'wpowp' ),
+				'!='   => __( 'Not Equals', 'wpowp' ),
+				'like' => __( 'Contains', 'wpowp' ),
 			),
 			'returning_customer' => array(
-				'='  => __( 'Yes', 'wc-thanks-redirect' ),
-				'!=' => __( 'No', 'wc-thanks-redirect' ),
+				'='  => __( 'Yes', 'wpowp' ),
+				'!=' => __( 'No', 'wpowp' ),
 			),
 			'order_date'         => array(
-				'='  => __( 'Equals', 'wc-thanks-redirect' ),
-				'!=' => __( 'Not Equals', 'wc-thanks-redirect' ),
-				'>'  => __( 'After', 'wc-thanks-redirect' ),
-				'<'  => __( 'Before', 'wc-thanks-redirect' ),
+				'='  => __( 'Equals', 'wpowp' ),
+				'!=' => __( 'Not Equals', 'wpowp' ),
+				'>'  => __( 'After', 'wpowp' ),
+				'<'  => __( 'Before', 'wpowp' ),
 			),
 		);
 	}
@@ -178,7 +179,7 @@ class Rules {
 			'payment_method'    => '', // No payment method at cart stage
 			'product_name'      => array_reduce(
 				WC()->cart->get_cart(),
-				function( $carry, $cart_item ) {
+				function ( $carry, $cart_item ) {
 					$product_id = $cart_item['product_id'];
 					$carry[ $product_id ] = $cart_item['data']->get_name(); // Get product name
 					return $carry;
@@ -187,7 +188,7 @@ class Rules {
 			),
 			'product_variation' => array_reduce(
 				WC()->cart->get_cart(),
-				function( $carry, $cart_item ) {
+				function ( $carry, $cart_item ) {
 					$product = $cart_item['data']; // Get product from cart item
 
 					// Check if the product is a variation
@@ -201,7 +202,7 @@ class Rules {
 			),
 			'product_category'  => array_reduce(
 				WC()->cart->get_cart(),
-				function( $carry, $cart_item ) {
+				function ( $carry, $cart_item ) {
 					$product_id = $cart_item['product_id'];
 					$terms = get_the_terms( $product_id, 'product_cat' );
 					if ( $terms && ! is_wp_error( $terms ) ) {
@@ -215,7 +216,7 @@ class Rules {
 			),
 			'product_tag'       => array_reduce(
 				WC()->cart->get_cart(),
-				function( $carry, $cart_item ) {
+				function ( $carry, $cart_item ) {
 					$product_id = $cart_item['product_id'];
 					$terms = get_the_terms( $product_id, 'product_tag' );
 					if ( $terms && ! is_wp_error( $terms ) ) {
@@ -271,27 +272,26 @@ class Rules {
 			$rule_valid = $this->evaluate_rule( $data_value, $operator, $value );
 
 			// Handle AND/OR conditions
-			if ( $index > 0 ) {
-				if ( $condition === 'AND' && ! $rule_valid ) {
-					return false; // If condition is AND and any rule is invalid, return false
+			if ( $condition === 'AND' ) {
+				if ( ! $rule_valid ) {
+					return false; // If any rule is invalid in AND condition, return false
 				}
-				if ( $condition === 'OR' && $rule_valid ) {
-					return true; // If condition is OR and any rule is valid, return true
+			} elseif ( $condition === 'OR' ) {
+				if ( $rule_valid ) {
+					return true; // If any rule is valid in OR condition, return true
 				}
-			} else {
-				// For the first rule, simply set the validity
-				$valid = $rule_valid;
 			}
 		}
 
-		return $condition === 'AND' ? $valid : false;
+		// If all rules are evaluated, return the result based on the condition
+		return $condition === 'AND' ? true : false;
 	}
 
 	/**
 	 * Get the value from order data based on the rule item.
 	 *
 	 * @param string $item Rule item.
-	 * @param array $order_data Order data.
+	 * @param array  $order_data Order data.
 	 * @return mixed Value from the order data.
 	 */
 	private function get_cart_data_value( $item, $cart_data ) {
@@ -300,7 +300,7 @@ class Rules {
 				return $cart_data['payment_method'];
 			case 'product_name':
 				return array_keys( $cart_data['product_name'] );
-			case 'product_variation':				
+			case 'product_variation':
 				return array_keys( $cart_data['product_variation'] );
 			case 'product_category':
 				return $cart_data['product_category'];
@@ -316,9 +316,9 @@ class Rules {
 	/**
 	 * Evaluate a single rule.
 	 *
-	 * @param mixed $data_value The value to compare.
+	 * @param mixed  $data_value The value to compare.
 	 * @param string $operator The operator to use for comparison.
-	 * @param mixed $value The value to compare against.
+	 * @param mixed  $value The value to compare against.
 	 * @return bool True if the rule is satisfied, false otherwise.
 	 */
 	private function evaluate_rule( $data_value, $operator, $value ) {
@@ -331,8 +331,14 @@ class Rules {
 				return $data_value > $value;
 			case '<':
 				return $data_value < $value;
-			case 'in':				
-				return is_array( $data_value ) ? array_intersect( $data_value, $value ) : in_array( $data_value, $value, true );
+			case 'in':
+				if ( is_array( $data_value ) ) {
+					// Check if there is any intersection between the two arrays
+					return ! empty( array_intersect( $data_value, (array) $value ) );
+				} else {
+					// Check if the single value is in the array
+					return in_array( $data_value, (array) $value, true );
+				}
 			case 'not_in':
 				return is_array( $data_value ) ? ! array_intersect( $data_value, $value ) : ! in_array( $data_value, $value, true );
 			default:
@@ -340,5 +346,3 @@ class Rules {
 		}
 	}
 }
-
-

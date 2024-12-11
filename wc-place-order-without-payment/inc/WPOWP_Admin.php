@@ -20,9 +20,10 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		use Get_Instance;
 
 		/**
-		* Default options
-		* @var array
-		*/
+		 * Default options
+		 *
+		 * @var array
+		 */
 
 		private $settings = array();
 
@@ -86,6 +87,8 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				'hide_place_order_button'          => false,
 				'remove_taxes'                     => false,
 				'enable_sitewide'                  => true,
+				'hide_price'                       => 'no',
+				'hide_additional_info_tab'         => 'no',
 			);
 		}
 
@@ -192,9 +195,9 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			if ( isset( $_GET['page'] ) && $_GET['page'] === 'wpowp-settings' ) {
 
 				wp_enqueue_style( 'wpowp-bootstrap', WPOWP_URL . 'assets/css/bootstrap.min.css', array(), '5.0.2' );
-				wp_enqueue_style( 'font-awesome', '//cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css', array(), '5.5.14' );
 				wp_enqueue_style( 'wpowp-select2', plugins_url( '', WC_PLUGIN_FILE ) . '/assets/css/select2.css', array(), array(), false );
 				wp_enqueue_style( 'wpowp-toastr', WPOWP_URL . 'assets/css/wpowp-admin.css', array(), array(), false );
+				wp_enqueue_style( 'dashicons' );
 
 				wp_enqueue_script( 'wpowp-bootstrap', WPOWP_URL . 'assets/js/bootstrap.min.js', array( 'jquery' ), WPOWP_VERSION, true );
 				wp_enqueue_script( 'selectWoo' );
@@ -241,7 +244,6 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 					true
 				);
 			}
-
 		}
 
 		/**
@@ -277,7 +279,6 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 
 			return $text;
 		}
-
 	}
 
 	WPOWP_Admin::get_instance();

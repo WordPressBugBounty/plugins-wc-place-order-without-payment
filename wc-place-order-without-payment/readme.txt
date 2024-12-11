@@ -2,10 +2,10 @@
 Contributors: nitin247
 Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: place order without payment, checkout without payment, request quote, pre-sale orders, quote plugin, 
-Requires at least: 6.0
-Tested up to: 6.6
-Stable tag: 2.6.4
-Version: 2.6.4
+Requires at least: 6.2
+Tested up to: 6.7
+Stable tag: 2.6.5
+Version: 2.6.5
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -132,6 +132,8 @@ For support or any inquiries, please contact us at <a href="mailto:nitin247@outl
 Enjoy using the Place order without payment plugin!
 
 == Changelog ==
+** V 2.6.5 **
+* Hide price, Hide Additional Information Tab, bug fixes and improvements
 ** V 2.6.4 **
 * Various Bug fixes
 ** V 2.6.3 **
@@ -180,5 +182,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.6.4 = 
-Bug fixes
+= 2.6.5 = 
+Hide price, Hide Additional Information Tab, bug fixes and improvements

@@ -69,7 +69,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 						<p><?php esc_html_e( '( Skip Cart & Go to Checkout on Add to Cart )', WPOWP_TEXT_DOMAIN ); ?></p>
 					</td>
 				</tr>
-				<tr>
+				<tr class="wpowp-admin-separator">
 					<th scope="row"><?php esc_html_e( 'Standard Add Cart Button', WPOWP_TEXT_DOMAIN ); ?></th>
 					<td>
 						<fieldset>
@@ -83,6 +83,27 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 							</label>
 						</fieldset>
 						<p><?php esc_html_e( '( Standard Add to cart button on shop pages )', WPOWP_TEXT_DOMAIN ); ?></p>
+					</td>
+				</tr>
+				<tr class="">
+					<th scope="row"><label
+							for="wpowp_order_status"><?php esc_html_e( 'Hide Price', WPOWP_TEXT_DOMAIN ); ?></label>
+					</th>
+					<td>					
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_price" value="no" <?php echo ( 'no' === $option['hide_price'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'None', WPOWP_TEXT_DOMAIN ); ?> </label> 
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_price" value="logged_out" <?php echo ( 'logged_out' === $option['hide_price'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'Logged Out user', WPOWP_TEXT_DOMAIN ); ?> </label>											
+						<p><?php esc_html_e( '( Hide Product Price )', WPOWP_TEXT_DOMAIN ); ?></p>
+					</td>
+				</tr>
+				<tr class="wpowp-admin-separator">
+					<th scope="row">
+						<label
+							for="wpowp_order_status"><?php esc_html_e( 'Hide Additional Information Tab', WPOWP_TEXT_DOMAIN ); ?></label>
+					</th>
+					<td>
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_additional_info_tab" value="no" <?php echo ( 'no' === $option['hide_additional_info_tab'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'None', WPOWP_TEXT_DOMAIN ); ?> </label> 
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_additional_info_tab" value="logged_out" <?php echo ( 'logged_out' === $option['hide_additional_info_tab'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'Logged Out user', WPOWP_TEXT_DOMAIN ); ?> </label>																						
+						<p><?php esc_html_e( '( Hide Additional Information Tab on Product Page )', WPOWP_TEXT_DOMAIN ); ?></p>
 					</td>
 				</tr>				
 				<?php

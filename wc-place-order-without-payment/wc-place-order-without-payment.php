@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.6.4
+ * Version:           2.6.5
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -24,10 +24,10 @@
  * Text Domain:       wpowp
  * Domain Path:       /languages/
  * Requires PHP:      7.4
- * Requires at least: 6.0
- * Tested up to: 6.6
- * WC requires at least: 8.5
- * WC tested up to: 9.3
+ * Requires at least: 6.2
+ * Tested up to: 6.7
+ * WC requires at least: 8.2
+ * WC tested up to: 9.4
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -35,19 +35,19 @@ if ( !defined( 'WPINC' ) ) {
     die;
 }
 if ( !file_exists( plugin_dir_path( __FILE__ ) . 'vendor/autoload.php' ) ) {
-    die;
+    wp_die( 'Plugin dependencies no installed!!!' );
+} else {
+    include_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 }
-include_once plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
 use WPOWP\WPOWP_Admin;
 use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.3' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.5' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
 defined( 'WPOWP_URL' ) or define( 'WPOWP_URL', plugins_url( '/', WPOWP_FILE ) );
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.3' );
 defined( 'WPOWP_TEXT_DOMAIN' ) or define( 'WPOWP_TEXT_DOMAIN', 'wpowp' );
 defined( 'WPOWP_NAME' ) or define( 'WPOWP_NAME', __( 'Place Order Without Payment', WPOWP_TEXT_DOMAIN ) );
 defined( 'WPOWP_SHORT_NAME' ) or define( 'WPOWP_SHORT_NAME', __( 'Place Order', WPOWP_TEXT_DOMAIN ) );
@@ -66,22 +66,29 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
             if ( !defined( 'WP_FS__PRODUCT_4030_MULTISITE' ) ) {
                 define( 'WP_FS__PRODUCT_4030_MULTISITE', true );
             }
-            // Include Freemius SDK.
-            require_once dirname( __FILE__ ) . '/freemius/start.php';
+            // Freemius SDK loaded via composer.
             $wpowp_fs = fs_dynamic_init( array(
-                'id'             => '4030',
-                'slug'           => 'wc-place-order-without-payment',
-                'type'           => 'plugin',
-                'public_key'     => 'pk_11c5a507e23c860c7e456326363ba',
-                'is_premium'     => false,
-                'premium_suffix' => 'Pro',
-                'has_addons'     => false,
-                'has_paid_plans' => true,
-                'menu'           => array(
+                'id'               => '4030',
+                'slug'             => 'wc-place-order-without-payment',
+                'type'             => 'plugin',
+                'public_key'       => 'pk_11c5a507e23c860c7e456326363ba',
+                'is_premium'       => false,
+                'premium_suffix'   => 'Pro',
+                'has_addons'       => false,
+                'has_paid_plans'   => true,
+                'is_org_compliant' => true,
+                'is_premium_only'  => false,
+                'trial'            => array(
+                    'days'               => 7,
+                    'is_require_payment' => false,
+                ),
+                'menu'             => array(
                     'slug'       => 'wpowp-settings',
                     'first-path' => 'admin.php?page=wpowp-settings&tab=settings',
+                    'account'    => true,
                 ),
-                'is_live'        => true,
+                'is_live'          => true,
+                'anonymous_mode'   => true,
             ) );
         }
         return $wpowp_fs;
@@ -202,7 +209,7 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             ), admin_url( 'update.php' ) ), 'install-plugin_woocommerce' );
             echo '<div class="notice notice-error is-dismissible"><p>';
             // translators: 1$-2$: opening and closing <strong> tags, 3$-4$: link tags, takes to woocommerce plugin on wp.org, 5$-6$: opening and closing link tags, leads to plugins.php in admin.
-            echo sprintf(
+            printf(
                 esc_html__( '%1$sPlace Order without payment for WooCommerce is inactive.%2$s The %3$sWooCommerce plugin%4$s must be active for Place Order without payment for WooCommerce to work. Please %5$sinstall & activate WooCommerce &raquo;%6$s', WPOWP_TEXT_DOMAIN ),
                 '<strong>',
                 '</strong>',
@@ -328,6 +335,10 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             $quote_only_text = WPOWP_Admin::get_instance()->get_settings( 'quote_button_text' );
             $quote_only_text = ( 'Quote Only' === trim( $quote_only_text ) ? __( 'Quote Only', WPOWP_TEXT_DOMAIN ) : $quote_only_text );
             $quote_btn_text = apply_filters( 'wpowp_translate_quote_only_text', $quote_only_text );
+            $quote_btn_label = apply_filters( 'wpowp_quote_btn_label', '' );
+            if ( !empty( $quote_btn_label ) ) {
+                echo '<span class="wpowp-quote-only-label">' . esc_html( $quote_btn_label ) . '</span>';
+            }
             echo '<button type="submit" id="wpowp-quote-only" class="button wpowp-quote-only" href="#" onclick="wpowp_remove_payment_methods();">' . esc_html( $quote_btn_text ) . '</button>';
             // Remove WC Payment Methods on Quote Order Click
             echo '<script>function wpowp_remove_payment_methods(){ jQuery( ".wc_payment_methods, .payment_methods" ).remove(); }</script>';
@@ -419,7 +430,7 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         public function wc_block_checkout() {
             $document_url = 'https://nitin247.com/docs/place-order-without-payment/no-payment-method-provided-error/?utm_source=wpowp&utm_campaign=wp-install&utm_medium=plugin&utm_term=WPOWP';
             echo '<div class="notice notice-error is-dismissible"><p>';
-            echo sprintf(
+            printf(
                 esc_html__( 'Place Order without payment for WooCommerce requires Classic Checkout.The %1$s[woocommerce_checkout]%2$s shortcode must be placed on Checkout page. Read documentation %5$sNo Payment Method Provided Error%6$s here.', WPOWP_TEXT_DOMAIN ),
                 '<strong>',
                 '</strong>',

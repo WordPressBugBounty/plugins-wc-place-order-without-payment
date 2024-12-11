@@ -3,7 +3,7 @@
 /**
  * @package     Thank You Page
  * @since       4.1.6
-*/
+ */
 
 namespace WPOWP;
 
@@ -34,7 +34,12 @@ class Helper {
 	 * @return array
 	 */
 	public function get_roles() {
-		$roles = get_option( 'wp_user_roles' );
+		global $wp_roles;
+		$roles = array();
+
+		foreach ( $wp_roles->roles as $key => $value ) {
+			$roles[ $key ] = $value['name'];
+		}
 		return $roles;
 	}
 
@@ -52,7 +57,7 @@ class Helper {
 			foreach ( $wp_user_roles as $key => $value ) {
 				$roles[] = array(
 					'id'   => $key,
-					'text' => $value['name'],
+					'text' => $value,
 				);
 			}
 		}
@@ -267,7 +272,6 @@ class Helper {
 			return $products;
 
 		}
-
 	}
 
 	public static function term_details( $ids, $taxonomy = 'product_cat' ) {
@@ -308,5 +312,4 @@ class Helper {
 
 		return $shortened_array;
 	}
-
 }

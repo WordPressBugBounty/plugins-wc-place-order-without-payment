@@ -26,11 +26,13 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		public function __construct() {
 
 			$this->settings = WPOWP_Admin::get_instance()->get_settings();
-			$this->handle_front( $this->settings );			
+			$this->handle_front( $this->settings );
 			// Update Order status
 			add_action( 'woocommerce_thankyou', array( $this, 'update_order_status' ), 10, 1 );
 			// Hide Place Order button
 			add_filter( 'woocommerce_order_button_html', array( $this, 'hide_place_order_button' ) );
+			// Hide price with CSS
+			add_action( 'wp_head', array( $this, 'hide_prices_with_css' ) );
 		}
 
 		/**
@@ -78,15 +80,25 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 					add_filter( 'woocommerce_order_button_text', array( $this, 'order_btntext' ) );
 				}
 
+				// Remove Taxes
 				if ( true === filter_var( $settings['remove_taxes'], FILTER_VALIDATE_BOOLEAN ) ) {
 					add_filter( 'woocommerce_cart_tax_totals', array( $this, 'remove_cart_tax_totals' ), 10, 2 );
 					add_filter( 'woocommerce_calculated_total', array( $this, 'exclude_tax_cart_total' ), 10, 2 );
 					add_filter( 'woocommerce_subscriptions_calculated_total', array( $this, 'exclude_tax_cart_total' ), 10, 2 );
 				}
-			}
 
+				// Hide woocommerce prices
+				if ( 'logged_out' === $settings['hide_price'] && ! is_user_logged_in() ) {
+					$this->hide_woocommerce_prices();
+				}
+
+				// Hide additional info tab
+				if ( 'logged_out' === $settings['hide_additional_info_tab'] ) {
+					add_filter( 'woocommerce_product_tabs', array( $this, 'remove_additional_info_tab' ) );
+				}
+			}
 		}
-		
+
 		/**
 		 * Skip Cart
 		 *
@@ -112,7 +124,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		/**
 		 * Free Product
 		 *
-		 * @param  float $price
+		 * @param  float  $price
 		 * @param  object $product
 		 * @return $price
 		 */
@@ -191,14 +203,14 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 				$order_status = $order->get_status();
 
 				$wpowp_ordered = false;
-				
-				if( empty( $order->get_meta( 'wpowp-order', false ) ) ){
-				    // Add the meta data
-                    $order->update_meta_data( 'wpowp-order', 'Place Order', false );
-                    // Save the order data
-                    $order->save();
-				}else{
-				    $wpowp_ordered = true;
+
+				if ( empty( $order->get_meta( 'wpowp-order', false ) ) ) {
+					// Add the meta data
+					$order->update_meta_data( 'wpowp-order', 'Place Order', false );
+					// Save the order data
+					$order->save();
+				} else {
+					$wpowp_ordered = true;
 				}
 
 				if ( has_filter( 'wpowp_skip_update_order_status' ) ) {
@@ -219,7 +231,6 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 					$order->update_status( $status );
 				}
 			}
-
 		}
 
 		/**
@@ -306,7 +317,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		 * @return void
 		 * @since 2.6.0
 		 */
-		public function exclude_tax_cart_total( $total, $instance ) {
+		public function exclude_tax_cart_total( $total, $instance ) { // phpcs:ignore
 
 			// If it is the cart subtract the tax
 			if ( is_cart() ) {
@@ -322,7 +333,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		 * @return void
 		 * @since 2.6.0
 		 */
-		public function remove_cart_tax_totals( $tax_totals, $instance ) {
+		public function remove_cart_tax_totals( $tax_totals, $instance ) { // phpcs:ignore
 
 			if ( is_cart() || is_checkout() ) {
 				$tax_totals = array();
@@ -331,8 +342,74 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 			return $tax_totals;
 		}
 
-	}
+		/**
+		 * Remove additional info tab
+		 *
+		 * @param  array $tabs
+		 * @return $tabs
+		 * @since 2.6.5
+		 */
+		public function remove_additional_info_tab( $tabs ) {
 
-	WPOWP_Front::get_instance();
+			if ( is_product() && !is_user_logged_in() ) {
+				unset( $tabs['additional_information'] );
+			}
+
+			return $tabs;
+		}
+
+		/**
+		 * Remove hide woocommerce prices
+		 *
+		 * @return void()
+		 * @since 2.6.5
+		 */
+		public function hide_woocommerce_prices() {
+			// Remove price from product loop (category/shop pages)
+			remove_action( 'woocommerce_after_shop_loop_item_title', 'woocommerce_template_loop_price', 10 );
+
+			// Remove price from single product page
+			remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_price', 10 );
+
+			// Remove price from product widgets
+			remove_action( 'woocommerce_widget_shopping_cart_total', 'woocommerce_widget_shopping_cart_subtotal', 10 );
+		}
+
+		/**
+		 * Remove hide woocommerce prices
+		 *
+		 * @return void()
+		 * @since 2.6.5
+		 */
+		function hide_prices_with_css() {
+			if ( 'logged_out' === $this->settings['hide_price'] && ! is_user_logged_in() ) {
+				?>
+				<style>
+					/* Hide prices on product pages */
+					.price,
+					.woocommerce-Price-amount,
+					.product-price,
+					.single-product .price,
+					.loop-price,
+					.cart-subtotal,
+					.cart-total {
+						display: none !important;
+						visibility: hidden !important;
+						opacity: 0 !important;
+					}
+
+					/* Hide Additional Information Tab and Section */
+					.woocommerce-tabs .additional_information,
+					#tab-additional_information,
+					.additional_information_tab {
+						display: none !important;
+						visibility: hidden !important;
+						opacity: 0 !important;
+					}
+				</style>
+				<?php
+			}
+		}
+	}
 
 }

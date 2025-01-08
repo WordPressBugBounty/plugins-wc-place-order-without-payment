@@ -4,8 +4,8 @@ Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: place order without payment, checkout without payment, request quote, pre-sale orders, quote plugin, 
 Requires at least: 6.2
 Tested up to: 6.7
-Stable tag: 2.6.5
-Version: 2.6.5
+Stable tag: 2.6.6
+Version: 2.6.6
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -75,9 +75,17 @@ Boost Sales & Customer Satisfaction, get '<a href="https://nitin247.com/plugin/w
 
 6- Filters to exclude Products, Categories from Place Order function 
 
-7- Custom Rules for Place order button
+7- **Custom Rules** for *Place Order button*
 
-8- Custom Rules for Request Quote button 
+8- **Custom Rules** for *Request Quote button* 
+
+9- **Pending Payment Email Notification:** Stay on top of your orders with our prompt email notifications for pending payments.
+
+10- **Mail Template:** Customize pending payment email template as per your business needs.
+
+11- **Pay Order Link:** Simplify the payment process with direct pay order links.
+
+12- **Automatic Mail Sending:** Effortlessly manage pending payments with automatic email sending based on order status.
 
 **Coming Soon**
 
@@ -97,8 +105,9 @@ e.g.
 
 == Screenshots ==
 
-1. Screenshot of the plugin settings page.
-2. Screenshot of Quote Only settings.
+1. Settings page.
+2. PLace Order Rules.
+3. Quote Only
 
 == Frequently Asked Questions ==
  
@@ -132,6 +141,10 @@ For support or any inquiries, please contact us at <a href="mailto:nitin247@outl
 Enjoy using the Place order without payment plugin!
 
 == Changelog ==
+** V 2.6.6 **
+* Order pay page fix
+* Order buttons text as per Rules
+* Pending payment, notification email
 ** V 2.6.5 **
 * Hide price, Hide Additional Information Tab, bug fixes and improvements
 ** V 2.6.4 **
@@ -182,5 +195,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.6.5 = 
-Hide price, Hide Additional Information Tab, bug fixes and improvements
+= 2.6.6 = 
+Order pay page fix

@@ -50,7 +50,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 						'permission_callback' => array( $this, 'get_write_api_permission_check' ),
 						'args'                => array(
 							'settings' => array(
-								'description'       => __( 'Plugin settings', WPOWP_TEXT_DOMAIN ),
+								'description'       => __( 'Plugin settings', 'wpowp' ),
 								'type'              => 'json',
 								'validate_callback' => 'rest_validate_request_arg',
 								'sanitize_callback' => array( $this, 'sanitize_request' ),
@@ -70,7 +70,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 						'permission_callback' => array( $this, 'get_write_api_permission_check' ),
 						'args'                => array(
 							'settings' => array(
-								'description'       => __( 'Plugin settings', WPOWP_TEXT_DOMAIN ),
+								'description'       => __( 'Plugin settings', 'wpowp' ),
 								'type'              => 'json',
 								'validate_callback' => 'rest_validate_request_arg',
 								'sanitize_callback' => array( $this, 'sanitize_request' ),
@@ -90,7 +90,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 						'permission_callback' => array( $this, 'get_write_api_permission_check' ),
 						'args'                => array(
 							'term' => array(
-								'description'       => __( 'Term', WPOWP_TEXT_DOMAIN ),
+								'description'       => __( 'Term', 'wpowp' ),
 								'type'              => 'json',
 								'validate_callback' => 'rest_validate_request_arg',
 								'sanitize_callback' => array( $this, 'sanitize_request' ),
@@ -203,7 +203,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			WPOWP_Admin::get_instance()->set_option( 'wpowp_settings', ( $settings ) );
 
 			$this->response['success'] = true;
-			$this->response['message'] = __( 'Settings Saved', WPOWP_TEXT_DOMAIN );
+			$this->response['message'] = __( 'Settings Saved', 'wpowp' );
 
 			return rest_ensure_response( $this->response );
 
@@ -215,7 +215,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			delete_option( 'wpowp_settings' );
 
 			$this->response['success'] = true;
-			$this->response['message'] = __( 'Settings Reset', WPOWP_TEXT_DOMAIN );
+			$this->response['message'] = __( 'Settings Reset', 'wpowp' );
 
 			return rest_ensure_response( $this->response );
 
@@ -230,7 +230,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			WPOWP_Admin::get_instance()->set_option( 'wpowp_settings', ( $settings ) );
 
 			$this->response['success'] = true;
-			$this->response['message'] = __( 'Settings Saved', WPOWP_TEXT_DOMAIN );
+			$this->response['message'] = __( 'Settings Saved', 'wpowp' );
 
 			return rest_ensure_response( $this->response );
 
@@ -376,7 +376,5 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			return current_user_can( 'manage_options' ) ? true : false;
 		}
 
-	}
-
-	WPOWP_Rest_API::get_instance();
+	}	
 }

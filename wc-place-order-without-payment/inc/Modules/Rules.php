@@ -234,10 +234,14 @@ class Rules {
 		// Loop through each group of rules
 		foreach ( $saved_rules as $rule_group ) {
 
-			$switch                        = array();
-			$switch['placeOrderSwitch']    = $rule_group['placeOrderSwitch'];
-			$switch['requestQuoteSwitch']  = $rule_group['requestQuoteSwitch'];
-			$switch['orderApprovalSwitch'] = $rule_group['orderApprovalSwitch'];
+			$switch                                    = array();
+			$switch['placeOrderSwitch']                = ( isset( $rule_group['placeOrderSwitch'] ) ) ? $rule_group['placeOrderSwitch'] : '';
+			$switch['requestQuoteSwitch']              = ( isset( $rule_group['requestQuoteSwitch'] ) ) ? $rule_group['requestQuoteSwitch'] : '';
+			$switch['orderButtonTextSwitch']           = ( isset( $rule_group['orderButtonTextSwitch'] ) ) ? $rule_group['orderButtonTextSwitch'] : '';
+			$switch['removeShippingFieldsRatesSwitch'] = ( isset( $rule_group['removeShippingFieldsRatesSwitch'] ) ) ? $rule_group['removeShippingFieldsRatesSwitch'] : '';
+			$switch['removeTaxRatesSwitch']            = ( isset( $rule_group['removeTaxRatesSwitch'] ) ) ? $rule_group['removeTaxRatesSwitch'] : '';
+			$switch['removeCheckoutPrivacySwitch']     = ( isset( $rule_group['removeCheckoutPrivacySwitch'] ) ) ? $rule_group['removeCheckoutPrivacySwitch'] : '';
+			$switch['removeCheckoutTermsSwitch']       = ( isset( $rule_group['removeCheckoutTermsSwitch'] ) ) ? $rule_group['removeCheckoutTermsSwitch'] : '';
 
 			$rules = $rule_group['rules'];
 
@@ -263,7 +267,7 @@ class Rules {
 
 		$condition = $rules[0]['condition'] ?? 'AND'; // Default condition
 
-		foreach ( $rules as $index => $rule ) {
+		foreach ( $rules as $index => $rule ) { // phpcs:ignore
 			$item     = $rule['item'];
 			$operator = $rule['operator'];
 			$value    = $rule['value'];

@@ -13,6 +13,7 @@ use WPOWP\Traits\Get_Instance;
 
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Helper as WPOWP_Helper;
+use WPOWP\Modules\PendingPaymentNotification as WPOWP_PendingPaymentEmail;
 
 if ( ! class_exists( 'WPOWP_Admin' ) ) {
 	class WPOWP_Admin {
@@ -41,6 +42,13 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			// Admin Footer
 			add_filter( 'admin_footer_text', array( $this, 'replace_footer' ) );
 			add_filter( 'update_footer', array( $this, 'replace_version' ), 99 );
+			// Trigger the custom email when order status changes to pending
+			add_action( 'woocommerce_order_status_changed', array( $this, 'send_order_notification' ), 10, 3 );
+
+			if ( wpowp_fs()->is_paying() ) {
+				// Add to WooCommerce Email Classes
+				add_filter( 'woocommerce_email_classes', array( $this, 'add_order_notification_email' ) );
+			}
 		}
 
 		/**
@@ -53,8 +61,8 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			add_menu_page( WPOWP_SHORT_NAME, WPOWP_SHORT_NAME, 'manage_options', WPOWP_PLUGIN_SLUG, array( $this, 'menu_settings' ), 'dashicons-store', 26 );
 			add_submenu_page(
 				'admin.php?page=wpowp-settings',
-				__( WPOWP_SHORT_NAME, WPOWP_TEXT_DOMAIN ),
-				__( WPOWP_SHORT_NAME, WPOWP_TEXT_DOMAIN ),
+				__( WPOWP_SHORT_NAME, 'wpowp' ),
+				__( WPOWP_SHORT_NAME, 'wpowp' ),
 				'manage_options',
 				'books-shortcode-ref',
 				'books_ref_page_callback'
@@ -71,19 +79,19 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			$this->settings = array(
 				'skip_cart'                        => false,
 				'order_status'                     => 'processing', // Default order status after place order
-				'add_cart_text'                    => __( 'Buy Now', WPOWP_TEXT_DOMAIN ),
+				'add_cart_text'                    => __( 'Buy Now', 'wpowp' ),
 				'free_product_on_cart'             => false,
 				'free_product_on_checkout'         => false,
 				'free_product'                     => false,
-				'free_product_text'                => __( 'FREE', WPOWP_TEXT_DOMAIN ),
+				'free_product_text'                => __( 'FREE', 'wpowp' ),
 				'quote_only'                       => false,
 				'quote_button_postion'             => 'after_submit',
-				'quote_button_text'                => __( 'Qoute Only', WPOWP_TEXT_DOMAIN ),
+				'quote_button_text'                => __( 'Qoute Only', 'wpowp' ),
 				'remove_shipping'                  => false,
 				'remove_privacy_policy_text'       => false,
 				'remove_checkout_terms_conditions' => false,
 				'standard_add_cart'                => false,
-				'order_button_text'                => __( 'Place Order', WPOWP_TEXT_DOMAIN ),
+				'order_button_text'                => __( 'Place Order', 'wpowp' ),
 				'hide_place_order_button'          => false,
 				'remove_taxes'                     => false,
 				'enable_sitewide'                  => true,
@@ -149,6 +157,8 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		/**
 		 * Get settings
 		 *
+		 * @param  string  $setting_name
+		 * @param  boolean $skip_merge
 		 * @return settings
 		 * @since 2.3
 		 */
@@ -171,6 +181,9 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 
 		/**
 		 * Set Option
+		 *
+		 * $param string $option_name
+		 * $param string $option_value
 		 *
 		 * @return array
 		 * @since 2.3
@@ -222,7 +235,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 					'nonce'       => wp_create_nonce( 'wp_rest' ),
 					'restApiBase' => get_rest_url() . 'wpowp-api/action/',
 					'labels'      => array(
-						'add_rule'           => __( 'Add Rule', WPOWP_TEXT_DOMAIN ),
+						'add_rule'           => __( 'Add Rule', 'wpowp' ),
 						'confirm_reset_text' => WPOWP_ADMIN_CONFIRM_RESET_TEXT,
 					),
 					'lists'       => array(
@@ -249,17 +262,18 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		/**
 		 * Replace Footer
 		 *
+		 * @param string $text
 		 * @return void
 		 * @since 2.3
 		 */
 		public function replace_footer( $text ) {
 
 			if ( isset( $_GET['page'] ) && 'wpowp-settings' === sanitize_text_field( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				$text = __( 'Like Place Order Without Payment? Give it a', WPOWP_TEXT_DOMAIN );
+				$text = __( 'Like Place Order Without Payment? Give it a', 'wpowp' );
 
 				$text .= ' <a target="_blank" rel="noopener noreferrer" href="https://wordpress.org/support/plugin/wc-place-order-without-payment/reviews/?rate=5#new-post">';
 
-				$text .= __( '★★★★★', WPOWP_TEXT_DOMAIN ) . '</a>' . __( ' rating. A huge thanks in advance!', WPOWP_TEXT_DOMAIN );
+				$text .= __( '★★★★★', 'wpowp' ) . '</a>' . __( ' rating. A huge thanks in advance!', 'wpowp' );
 			}
 
 			return $text;
@@ -268,19 +282,48 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		/**
 		 * Replace Version
 		 *
+		 * @param string $text
 		 * @return void
 		 * @since 2.3
 		 */
 		public function replace_version( $text ) {
 
 			if ( isset( $_GET['page'] ) && 'wpowp-settings' === sanitize_text_field( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				$text = __( 'Version ', WPOWP_TEXT_DOMAIN ) . WPOWP_VERSION;
+				$text = __( 'Version ', 'wpowp' ) . WPOWP_VERSION;
 			}
 
 			return $text;
 		}
-	}
 
-	WPOWP_Admin::get_instance();
+		/**
+		 * Add the pending payment notification email class to the list of email classes.
+		 *
+		 * @param array $email_classes The list of email classes.
+		 * @return array The updated list of email classes.
+		 * @since 2.6.6
+		 * @version 2.6.6
+		 */
+		public function add_order_notification_email( $email_classes ) {
+			$email_classes['WPOWP_Pending_Payment_Email'] = new WPOWP_PendingPaymentEmail();
+			return $email_classes;
+		}
+
+		/**
+		 * Send order notification when order status changes to pending, approved, rejected.
+		 *
+		 * @param int    $order_id The ID of the order.
+		 * @param string $old_status The old order status.
+		 * @param string $new_status The new order status.
+		 * @return void
+		 * @since 2.6.6
+		 */
+		public function send_order_notification( $order_id, $old_status, $new_status ) {
+			// Check if the new status is 'pending'
+			if ( $new_status === 'pending' ) {
+				$email = new WPOWP_PendingPaymentEmail();
+				$email->trigger( $order_id );
+			}
+		}
+	}
 
 }

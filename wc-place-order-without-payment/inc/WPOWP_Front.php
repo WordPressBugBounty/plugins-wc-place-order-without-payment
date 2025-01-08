@@ -43,7 +43,10 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		 */
 		public function handle_front( $settings ) {
 
-			if ( ! empty( $settings ) && is_array( $settings ) ) {
+			// Fetch Applicable Rules
+			$process_rules = wpowp_process_rules();
+
+			if ( ( ! empty( $settings ) && is_array( $settings ) ) || is_array( $process_rules ) ) {
 
 				$skip_cart = $settings['skip_cart'];
 
@@ -75,8 +78,8 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 				}
 
 				// Checkout Order button text
-				if ( ! empty( $settings['order_button_text'] ) ) {
-					// Add WC Order Button FilterI
+				if ( ( false === filter_var( $settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) && ! empty( $settings['order_button_text'] ) ) || ! empty( $process_rules['orderButtonTextSwitch'] ) ) {
+					// Add WC Order Button Filter
 					add_filter( 'woocommerce_order_button_text', array( $this, 'order_btntext' ) );
 				}
 
@@ -115,7 +118,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		 */
 		public function cart_btntext() {
 			$add_cart_label = $this->settings['add_cart_text'];
-			$add_cart_label = ( 'Buy Now' === trim( $add_cart_label ) ) ? __( 'Buy Now', WPOWP_TEXT_DOMAIN ) : $add_cart_label;
+			$add_cart_label = ( 'Buy Now' === trim( $add_cart_label ) ) ? __( 'Buy Now', 'wpowp' ) : $add_cart_label;
 			$add_cart_txt   = apply_filters( 'wpowp_translate_add_cart_txt', $add_cart_label );
 
 			return ( false === filter_var( $this->settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) ) ? esc_html( $add_cart_txt ) : '';
@@ -131,7 +134,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		public function free_product( $price, $product ) {
 
 			$free_price_label = $this->settings['free_product_text'];
-			$free_price_label = ( 'FREE' === trim( $free_price_label ) ) ? __( 'FREE', WPOWP_TEXT_DOMAIN ) : $free_price_label;
+			$free_price_label = ( 'FREE' === trim( $free_price_label ) ) ? __( 'FREE', 'wpowp' ) : $free_price_label;
 			$free_price_txt   = apply_filters( 'wpowp_translate_free_product_text', $free_price_label );
 
 			if ( $product->is_type( 'variable' ) ) {
@@ -240,7 +243,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		 */
 		public function order_btntext() {
 			$order_btntext     = $this->settings['order_button_text'];
-			$order_btntext     = ( 'Place Order' === trim( $order_btntext ) ) ? __( 'Place Order', WPOWP_TEXT_DOMAIN ) : $order_btntext;
+			$order_btntext     = ( 'Place Order' === trim( $order_btntext ) ) ? __( 'Place Order', 'wpowp' ) : $order_btntext;
 			$order_button_text = apply_filters( 'wpowp_translate_add_cart_txt', $order_btntext );
 			return esc_html( $order_button_text );
 		}
@@ -351,7 +354,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		 */
 		public function remove_additional_info_tab( $tabs ) {
 
-			if ( is_product() && !is_user_logged_in() ) {
+			if ( is_product() && ! is_user_logged_in() ) {
 				unset( $tabs['additional_information'] );
 			}
 

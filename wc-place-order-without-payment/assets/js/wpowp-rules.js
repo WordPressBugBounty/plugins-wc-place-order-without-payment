@@ -1,5 +1,5 @@
 
-/* Javascript for WCTR PRO Admin */
+/* Javascript for WPOWP Rules Admin */
 
 jQuery(function ($) {
 
@@ -31,7 +31,11 @@ jQuery(function ($) {
 
             (1 == group.placeOrderSwitch) ? groupElement.find('.placeOrderSwitch').attr('checked', true) : groupElement.find('.placeOrderSwitch').attr('checked', false);
             (1 == group.requestQuoteSwitch) ? groupElement.find('.requestQuoteSwitch').attr('checked', true) : groupElement.find('.requestQuoteSwitch').attr('checked', false);
-            (1 == group.orderApprovalSwitch) ? groupElement.find('.orderApprovalSwitch').attr('checked', true) : groupElement.find('.orderApprovalSwitch').attr('checked', false);
+            (1 == group.orderButtonTextSwitch) ? groupElement.find('.orderButtonTextSwitch').attr('checked', true) : groupElement.find('.orderButtonTextSwitch').attr('checked', false);
+            (1 == group.removeShippingFieldsRatesSwitch) ? groupElement.find('.removeShippingFieldsRatesSwitch').attr('checked', true) : groupElement.find('.removeShippingFieldsRatesSwitch').attr('checked', false);
+            (1 == group.removeTaxRatesSwitch) ? groupElement.find('.removeTaxRatesSwitch').attr('checked', true) : groupElement.find('.removeTaxRatesSwitch').attr('checked', false);
+            (1 == group.removeCheckoutPrivacySwitch) ? groupElement.find('.removeCheckoutPrivacySwitch').attr('checked', true) : groupElement.find('.removeCheckoutPrivacySwitch').attr('checked', false);
+            (1 == group.removeCheckoutTermsSwitch) ? groupElement.find('.removeCheckoutTermsSwitch').attr('checked', true) : groupElement.find('.removeCheckoutTermsSwitch').attr('checked', false);
 
             // Add rules to the group
             $.each(group.rules, function (ruleIndex, rule) {
@@ -251,7 +255,6 @@ jQuery(function ($) {
                 if (savedProductIds) {
 
                     if (Array.isArray(savedProductIds)) {
-                        console.log( savedProductIds );
                         // Manually trigger the loading of saved product details and set them as selected options
                         var selectElement = ruleElement.find('.multiselect-value');
 
@@ -266,8 +269,6 @@ jQuery(function ($) {
                             },
                             success: function (response) {
                                 if (response && response.data) {
-
-                                    console.log( response.data );
 
                                     var selectedOptions = $.map(response.data, function (product) {
                                         return { id: product.id, text: product.text };
@@ -492,7 +493,11 @@ jQuery(function ($) {
         $('.rule-group').each(function () {
             var placeOrderSwitch = $(this).find('.placeOrderSwitch').is(':checked') ? 1 : 0;
             var requestQuoteSwitch = $(this).find('.requestQuoteSwitch').is(':checked') ? 1 : 0;
-            var orderApprovalSwitch = $(this).find('.orderApprovalSwitch').is(':checked') ? 1 : 0;
+            var orderButtonTextSwitch = $(this).find('.orderButtonTextSwitch').is(':checked') ? 1 : 0;
+            var removeShippingFieldsRatesSwitch = $(this).find('.removeShippingFieldsRatesSwitch').is(':checked') ? 1 : 0;
+            var removeTaxRatesSwitch = $(this).find('.removeTaxRatesSwitch').is(':checked') ? 1 : 0;
+            var removeCheckoutPrivacySwitch = $(this).find('.removeCheckoutPrivacySwitch').is(':checked') ? 1 : 0;
+            var removeCheckoutTermsSwitch = $(this).find('.removeCheckoutTermsSwitch').is(':checked') ? 1 : 0;
 
             var rules = [];
 
@@ -527,7 +532,11 @@ jQuery(function ($) {
             data.rules.push({
                 placeOrderSwitch: placeOrderSwitch,
                 requestQuoteSwitch: requestQuoteSwitch,
-                orderApprovalSwitch: orderApprovalSwitch,
+                orderButtonTextSwitch: orderButtonTextSwitch,
+                removeShippingFieldsRatesSwitch: removeShippingFieldsRatesSwitch,
+                removeTaxRatesSwitch: removeTaxRatesSwitch,
+                removeCheckoutPrivacySwitch: removeCheckoutPrivacySwitch,
+                removeCheckoutTermsSwitch: removeCheckoutTermsSwitch,
                 rules: rules
             });
         });
@@ -548,6 +557,6 @@ jQuery(function ($) {
                 toastr.error('Some error occurred, please try again in some time!', 'Error!');
             }
         });
-    });    
+    });
 
 });

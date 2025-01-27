@@ -4,8 +4,8 @@ Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: place order without payment, checkout without payment, request quote, pre-sale orders, quote plugin, 
 Requires at least: 6.2
 Tested up to: 6.7
-Stable tag: 2.6.6
-Version: 2.6.6
+Stable tag: 2.6.7
+Version: 2.6.7
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ The "Place Order Without Payment for WooCommerce" plugin provides a seamless sol
 
 By following our easy installation and setup instructions, you can enhance your customer experience by providing them with the flexibility to place orders without the pressure of immediate payment. With this plugin, you can streamline your order fulfillment process while maintaining control over payment collection.
 
-Key Features:
+**Key Features:**
 
 * Enable a "Place Order Without Payment" option for your WooCommerce store.
 * Customize the plugin settings to align with your business requirements.
@@ -28,7 +28,7 @@ Key Features:
 
 After Installing this plugin, Payment system will be removed from checkout page of woocommerce and users can directly place order without payment.
 
-Benefits of using the "Place Order Without Payment for WooCommerce" plugin:
+**Benefits of using the "Place Order Without Payment for WooCommerce" plugin:**
 
 * Improved customer experience: Customers can place orders more quickly and easily, without having to enter their payment information.
 * Increased sales: Allowing customers to place orders without payment can encourage them to buy more products, especially if they are unsure whether or not they can afford them immediately.
@@ -141,6 +141,8 @@ For support or any inquiries, please contact us at <a href="mailto:nitin247@outl
 Enjoy using the Place order without payment plugin!
 
 == Changelog ==
+** V 2.6.7 **
+* SDK Updated.
 ** V 2.6.6 **
 * Order pay page fix
 * Order buttons text as per Rules
@@ -195,5 +197,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.6.6 = 
-Order pay page fix
+= 2.6.7 = 
+SDK Update

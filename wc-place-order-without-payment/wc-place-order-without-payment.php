@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.6.6
+ * Version:           2.6.7
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -27,7 +27,7 @@
  * Requires at least: 6.2
  * Tested up to: 6.7
  * WC requires at least: 8.2
- * WC tested up to: 9.5
+ * WC tested up to: 9.6
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -78,7 +78,7 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
                 'has_paid_plans'   => true,
                 'is_org_compliant' => true,
                 'is_premium_only'  => false,
-                'has_affiliation'  => 'customers',
+                'has_affiliation'  => false,
                 'trial'            => array(
                     'days'               => 7,
                     'is_require_payment' => false,
@@ -129,7 +129,8 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             // Add action links
             add_action( 'plugin_action_links_' . plugin_basename( __FILE__ ), array($this, 'action_links') );
             // Run Plugin
-            add_action( 'plugins_loaded', array($this, 'run_plugin'), 20 );
+            add_action( 'wp_loaded', array($this, 'run_plugin'), 20 );
+            add_action( 'plugins_loaded', array($this, 'init_admin'), 20 );
             // HPOS Compatibility
             add_action( 'before_woocommerce_init', array($this, 'declare_compatibility'), 30 );
             // Add WC_Email on WooCommerce Init
@@ -185,6 +186,18 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             // Skip Payment sitewide
             if ( !empty( filter_var( $options['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) && !is_admin() ) {
                 $this->skip_payment();
+            }
+        }
+
+        /**
+         * Init Admin
+         *
+         * @return void
+         */
+        public function init_admin() {
+            if ( is_admin() ) {
+                // Init Admin
+                WPOWP_Admin::get_instance();
             }
         }
 

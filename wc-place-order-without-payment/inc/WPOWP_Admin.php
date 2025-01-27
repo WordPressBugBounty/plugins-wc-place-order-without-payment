@@ -42,12 +42,12 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			// Admin Footer
 			add_filter( 'admin_footer_text', array( $this, 'replace_footer' ) );
 			add_filter( 'update_footer', array( $this, 'replace_version' ), 99 );
-			// Trigger the custom email when order status changes to pending
-			add_action( 'woocommerce_order_status_changed', array( $this, 'send_order_notification' ), 10, 3 );
 
 			if ( wpowp_fs()->is_paying() ) {
 				// Add to WooCommerce Email Classes
 				add_filter( 'woocommerce_email_classes', array( $this, 'add_order_notification_email' ) );
+				// Trigger the custom email when order status changes to pending
+				add_action( 'woocommerce_order_status_changed', array( $this, 'send_order_notification' ), 10, 3 );
 			}
 		}
 

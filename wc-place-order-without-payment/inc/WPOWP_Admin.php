@@ -145,10 +145,11 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		 */
 		public function load_admin( $tab, $append_php = true ) {
 
+			$allowed_tabs  = array( 'admin/settings', 'admin/rules', 'admin/quote-only' );
 			$template_file = ( true === $append_php ) ? WPOWP_TEMPLATES . $tab . '.php' : WPOWP_TEMPLATES . $tab;
 
-			if ( ! file_exists( $template_file ) ) {
-				return;
+			if ( ! in_array( $tab, $allowed_tabs, true ) || ! file_exists( $template_file ) ) {
+				wp_die( esc_html_e( 'Invalid path', 'wpowp' ) );
 			}
 
 			require_once $template_file; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable

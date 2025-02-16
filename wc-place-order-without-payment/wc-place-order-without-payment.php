@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.6.7
+ * Version:           2.6.8
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -43,7 +43,7 @@ use WPOWP\WPOWP_Admin;
 use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.6' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.8' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -77,8 +77,6 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
                 'has_addons'       => false,
                 'has_paid_plans'   => true,
                 'is_org_compliant' => true,
-                'is_premium_only'  => false,
-                'has_affiliation'  => false,
                 'trial'            => array(
                     'days'               => 7,
                     'is_require_payment' => false,
@@ -172,16 +170,6 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             WPOWP_Front::get_instance();
             // Init API
             WPOWP_Rest_API::get_instance();
-            if ( is_admin() ) {
-                // Init Admin
-                WPOWP_Admin::get_instance();
-            }
-            $saved_rules = WPOWP_Rest_API::get_instance()->fetch_rules( 0 );
-            $process_rules = WPOWP_Rules::get_instance()->process_rules( $saved_rules );
-            // Skip Payment based on Saved Rules
-            if ( !empty( $process_rules ) && $process_rules['placeOrderSwitch'] ) {
-                $this->skip_payment();
-            }
             $options = WPOWP_Admin::get_instance()->get_settings();
             // Skip Payment sitewide
             if ( !empty( filter_var( $options['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) && !is_admin() ) {
@@ -260,7 +248,7 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
                 add_action( 'wc_ajax_checkout', array($this, 'disable_payment'), 0 );
             }
             // Disable payment if necessary
-            if ( $skip_payment || !$show_quote_btn || $enabled_sitewide ) {
+            if ( $enabled_sitewide ) {
                 $this->disable_payment();
             }
         }

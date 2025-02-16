@@ -268,21 +268,24 @@ class Rules {
 		$condition = $rules[0]['condition'] ?? 'AND'; // Default condition
 
 		foreach ( $rules as $index => $rule ) { // phpcs:ignore
-			$item     = $rule['item'];
-			$operator = $rule['operator'];
-			$value    = $rule['value'];
+			$item     = $rule['item'] ?? '';
+			$operator = $rule['operator'] ?? '';
+			$value    = $rule['value'] ?? '';
 
-			$data_value = $this->get_cart_data_value( $item, $order_data );
-			$rule_valid = $this->evaluate_rule( $data_value, $operator, $value );
+			if ( ! empty( $value ) && ! empty( $item ) ) {
 
-			// Handle AND/OR conditions
-			if ( $condition === 'AND' ) {
-				if ( ! $rule_valid ) {
-					return false; // If any rule is invalid in AND condition, return false
-				}
-			} elseif ( $condition === 'OR' ) {
-				if ( $rule_valid ) {
-					return true; // If any rule is valid in OR condition, return true
+				$data_value = $this->get_cart_data_value( $item, $order_data );
+				$rule_valid = $this->evaluate_rule( $data_value, $operator, $value );
+
+				// Handle AND/OR conditions
+				if ( $condition === 'AND' ) {
+					if ( ! $rule_valid ) {
+						return false; // If any rule is invalid in AND condition, return false
+					}
+				} elseif ( $condition === 'OR' ) {
+					if ( $rule_valid ) {
+						return true; // If any rule is valid in OR condition, return true
+					}
 				}
 			}
 		}

@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.6.8
+ * Version:           2.6.9
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -27,7 +27,7 @@
  * Requires at least: 6.2
  * Tested up to: 6.7
  * WC requires at least: 8.2
- * WC tested up to: 9.6
+ * WC tested up to: 9.7
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -43,7 +43,8 @@ use WPOWP\WPOWP_Admin;
 use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.8' );
+use WPOWP\Traits\Get_Instance;
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.9' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -100,21 +101,7 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
 }
 if ( !class_exists( 'WPOWP_Loader' ) ) {
     final class WPOWP_Loader {
-        private static $instance;
-
-        /**
-         * Get Instance
-         *
-         * @since 2.3
-         * @return object initialized object of class.
-         */
-        public static function get_instance() {
-            if ( is_null( self::$instance ) ) {
-                self::$instance = new self();
-            }
-            return self::$instance;
-        }
-
+        use Get_Instance;
         /**
          * Constructor
          *
@@ -234,23 +221,23 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         public function skip_payment() {
             // Get required settings and rules once
             $admin_instance = WPOWP_Admin::get_instance();
-            $quote_only = filter_var( $admin_instance->get_settings( 'quote_only' ), FILTER_VALIDATE_BOOLEAN );
-            $quote_btn_pos = $admin_instance->get_settings( 'quote_button_postion' );
             $saved_rules = WPOWP_Rest_API::get_instance()->fetch_rules( 0 );
             $process_rules = WPOWP_Rules::get_instance()->process_rules( $saved_rules );
             $enabled_sitewide = filter_var( $admin_instance->get_settings( 'enable_sitewide' ), FILTER_VALIDATE_BOOLEAN );
-            // Determine whether to show the quote button or disable payment
-            $show_quote_btn = $quote_only || !empty( $process_rules ) && $process_rules['requestQuoteSwitch'];
+            // Determine whether to disable payment
             $skip_payment = !empty( $process_rules ) && $process_rules['placeOrderSwitch'];
-            // Add actions if the quote button should be shown
-            if ( $show_quote_btn ) {
-                add_action( 'woocommerce_review_order_' . $quote_btn_pos, array($this, 'quote_button') );
-                add_action( 'wc_ajax_checkout', array($this, 'disable_payment'), 0 );
-            }
             // Disable payment if necessary
             if ( $enabled_sitewide ) {
                 $this->disable_payment();
             }
+        }
+
+        public function show_quote_button() {
+            $admin_instance = WPOWP_Admin::get_instance();
+            $quote_btn_pos = $admin_instance->get_settings( 'quote_button_postion' );
+            // Add actions if the quote button should be shown
+            add_action( 'woocommerce_review_order_' . $quote_btn_pos, array($this, 'quote_button') );
+            add_action( 'wc_ajax_checkout', array($this, 'disable_payment'), 0 );
         }
 
         /**

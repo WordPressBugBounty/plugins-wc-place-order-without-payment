@@ -7,25 +7,11 @@
 
 namespace WPOWP;
 
+use WPOWP\Traits\Get_Instance;
+
 class Helper {
 
-	private static $instance;
-
-	/**
-	 * Get Instance
-	 *
-	 * @since 4.1.6
-	 * @static
-	 * @access public
-	 * @return object initialized object of class.
-	 */
-	public static function get_instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
+	use Get_Instance;
 
 	/**
 	 * Get roles
@@ -292,7 +278,7 @@ class Helper {
 
 			if ( $term ) {
 				$results[] = array(
-					'id'   => $term->term_id,
+					'id'   => $term->name,
 					'text' => $term->name,
 				);
 			}

@@ -7,29 +7,16 @@
 
 namespace WPOWP\Modules;
 
+use WPOWP\Traits\Get_Instance;
 use WPOWP\Helper;
 
 class Rules {
 
+	use Get_Instance;
+
 	protected $options   = array();
 	protected $operators = array();
-	protected $rules     = array();
-
-	private static $instance;
-
-	/**
-	 * Get Instance
-	 *
-	 * @since 4.1.6
-	 * @return object initialized object of class.
-	 */
-	public static function get_instance() {
-
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-		}
-		return self::$instance;
-	}
+	protected $rules     = array();	
 
 	public function __construct() {
 		// Define options and option groups

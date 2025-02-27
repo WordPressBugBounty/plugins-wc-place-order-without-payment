@@ -138,7 +138,6 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 			$free_price_txt   = apply_filters( 'wpowp_translate_free_product_text', $free_price_label );
 
 			if ( $product->is_type( 'variable' ) ) {
-
 				$prices    = $product->get_variation_prices( true );
 				$min_price = current( $prices['price'] );
 				if ( 0 === $min_price ) {
@@ -155,7 +154,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 						$price = $free_price_txt;
 					}
 				}
-			} elseif ( 0 === absint( $product->get_price() ) ) {
+			} elseif ( '' !== $product->get_price() && 0 == floatval( $product->get_price() ) ) {
 				$price = '<span class="woocommerce-Price-amount amount">' . esc_html( $free_price_txt ) . '</span>';
 			}
 
@@ -204,6 +203,10 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 
 				$order        = new \WC_Order( $order_id );
 				$order_status = $order->get_status();
+
+				if ( ! empty( $order->get_payment_method() ) ) {
+					return;
+				}
 
 				$wpowp_ordered = false;
 

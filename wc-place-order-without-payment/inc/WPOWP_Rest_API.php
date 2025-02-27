@@ -35,7 +35,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 		 *
 		 * @return void
 		 */
-
 		public function init_admin() {
 
 			$this->rest_base . '/save-settings';
@@ -191,7 +190,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 					),
 				)
 			);
-
 		}
 
 		public function save_settings( \WP_REST_Request $request ) {
@@ -206,7 +204,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			$this->response['message'] = __( 'Settings Saved', 'wpowp' );
 
 			return rest_ensure_response( $this->response );
-
 		}
 
 		public function reset_settings() {
@@ -218,7 +215,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			$this->response['message'] = __( 'Settings Reset', 'wpowp' );
 
 			return rest_ensure_response( $this->response );
-
 		}
 
 		public function fetch_products( \WP_REST_Request $request ) {
@@ -233,7 +229,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			$this->response['message'] = __( 'Settings Saved', 'wpowp' );
 
 			return rest_ensure_response( $this->response );
-
 		}
 
 		public function sanitize_request( $data, $skip_clean = 0 ) {
@@ -260,7 +255,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			update_option( $this->option, $tyrules );
 
 			return new \WP_REST_Response( $tyrules, 200 );
-
 		}
 
 		public function search_product() {
@@ -270,7 +264,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 
 			$products = Helper::search_product( $keyword, $variations_only );
 			return $products;
-
 		}
 
 		public function search_category() {
@@ -280,7 +273,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 
 			$products = Helper::search_categories( $keyword, $post_type );
 			return $products;
-
 		}
 
 		public function search_tags() {
@@ -290,7 +282,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 
 			$products = Helper::search_tags( $keyword, $post_type );
 			return $products;
-
 		}
 
 		public function product_details( \WP_REST_Request $request ) {
@@ -338,7 +329,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			}
 
 			// Initialize an empty array to store product details
-			$terms = Helper::term_details( $term_ids, $taxonomy );
+			$terms = Helper::term_details( $term_ids, $taxonomy );			
 
 			// Return the response
 			return new \WP_REST_Response(
@@ -359,7 +350,6 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 			} else {
 				return $tyrules;
 			}
-
 		}
 
 		public function option_name() {
@@ -371,10 +361,8 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 		 *
 		 * @return void
 		 */
-
 		public function get_write_api_permission_check() {
 			return current_user_can( 'manage_options' ) ? true : false;
 		}
-
-	}	
+	}
 }

@@ -97,6 +97,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				'enable_sitewide'                  => true,
 				'hide_price'                       => 'no',
 				'hide_additional_info_tab'         => 'no',
+				'hide_prices_sitewide'              => 'no',
 			);
 		}
 

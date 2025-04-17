@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.6.9
+ * Version:           2.7.0
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -25,9 +25,9 @@
  * Domain Path:       /languages/
  * Requires PHP:      7.4
  * Requires at least: 6.2
- * Tested up to: 6.7
+ * Tested up to: 6.8
  * WC requires at least: 8.2
- * WC tested up to: 9.7
+ * WC tested up to: 9.8
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -44,7 +44,7 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.6.9' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.0' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -250,9 +250,9 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             if ( true === $this->exclude_elements() ) {
                 return;
             }
-            $remove_shipping = $quote_btn_text = WPOWP_Admin::get_instance()->get_settings( 'remove_shipping' );
-            $remove_privacy_policy_text = $quote_btn_text = WPOWP_Admin::get_instance()->get_settings( 'remove_privacy_policy_text' );
-            $remove_checkout_terms_conditions = $quote_btn_text = WPOWP_Admin::get_instance()->get_settings( 'remove_checkout_terms_conditions' );
+            $remove_shipping = WPOWP_Admin::get_instance()->get_settings( 'remove_shipping' );
+            $remove_privacy_policy_text = WPOWP_Admin::get_instance()->get_settings( 'remove_privacy_policy_text' );
+            $remove_checkout_terms_conditions = WPOWP_Admin::get_instance()->get_settings( 'remove_checkout_terms_conditions' );
             if ( isset( $_GET['key'] ) && isset( $_GET['pay_for_order'] ) || is_account_page() ) {
                 // phpcs:ignore
                 return;
@@ -483,6 +483,12 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
     if ( !function_exists( 'wpowp_process_rules' ) ) {
         function wpowp_process_rules() {
             return WPOWP_Loader::get_instance()->front_process_rules();
+        }
+
+    }
+    if ( !function_exists( 'wpowp_disable_payment' ) ) {
+        function wpowp_disable_payment() {
+            return WPOWP_Loader::get_instance()->disable_payment();
         }
 
     }

@@ -50,6 +50,22 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 					</td>
 				</tr>
 				<tr>
+					<th scope="row"><?php esc_html_e( 'Hide Prices Sitewide', 'wpowp' ); ?></th>
+					<td>
+						<fieldset>
+							<legend class="screen-reader-text">
+								<span>checkbox</span>
+							</legend>
+							<label for="wpowp_hide_prices_sitewide">
+								<input name="wpowp_hide_prices_sitewide" type="hidden" value="no" />
+								<input name="wpowp_hide_prices_sitewide" type="checkbox" id="wpowp_hide_prices_sitewide" value="yes"
+								<?php echo ( true === filter_var( $option['hide_prices_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) ? 'checked' : ''; ?> />
+								<p><?php esc_html_e( '( Disables the visibility of product prices across the entire website )', 'wpowp' ); ?></p>
+							</label>
+						</fieldset>
+					</td>
+				</tr>
+				<tr>
 					<th scope="row"><label
 							for="wpowp_quote_button_postion"><?php esc_html_e( 'Quote Only Button Position', 'wpowp' ); ?></label>
 					</th>
@@ -115,6 +131,21 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 					</td>
 				</tr>
 				<tr>
+					<th scope="row"><?php esc_html_e( 'Hide Price Sitewide', 'wpowp' ); ?></th>
+					<td>
+						<fieldset>
+							<legend class="screen-reader-text">
+								<span>checkbox</span>
+							</legend>
+							<label for="wpowp_hide_price_sitewide">
+								<input name="wpowp_hide_price_sitewide" type="hidden" value="no" />
+								<input name="wpowp_hide_price_sitewide" type="checkbox" id="wpowp_hide_price_sitewide" disabled value="disabled" />
+								<p><?php esc_html_e( '( Hide Price Sitewide )', 'wpowp' ); ?></p>
+							</label>
+						</fieldset>
+					</td>
+				</tr>
+				<tr>
 					<th scope="row"><label
 							for="wpowp_quote_button_postion"><?php esc_html_e( 'Quote Only Button Position', 'wpowp' ); ?></label>
 					</th>
@@ -157,7 +188,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 					<span>
 						<a href="<?php echo esc_url( $wpowp_fs->get_upgrade_url() ); ?>" class="button button-primary" target="_blank">
 							<?php esc_html_e( 'Upgrade to Pro', 'wpowp' ); ?>
-						 </a>
+						</a>
 					</span>
 					<span><?php esc_html_e( 'to avail the Request Quote feature', 'wpowp' ); ?></span>
 				</p>				

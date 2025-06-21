@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.7.0
+ * Version:           2.7.1
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -44,19 +44,15 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.0' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.1' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
 defined( 'WPOWP_URL' ) or define( 'WPOWP_URL', plugins_url( '/', WPOWP_FILE ) );
-defined( 'WPOWP_NAME' ) or define( 'WPOWP_NAME', __( 'Place Order Without Payment', 'wpowp' ) );
-defined( 'WPOWP_SHORT_NAME' ) or define( 'WPOWP_SHORT_NAME', __( 'Place Order', 'wpowp' ) );
 defined( 'WPOWP_PLUGIN_SLUG' ) or define( 'WPOWP_PLUGIN_SLUG', 'wpowp-settings' );
 defined( 'WPOWP_PLUGIN_PREFIX' ) or define( 'WPOWP_PLUGIN_PREFIX', 'wpowp-' );
 defined( 'WPOWP_FORM_PREFIX' ) or define( 'WPOWP_FORM_PREFIX', 'wpowp_' );
 defined( 'WPOWP_TEMPLATES' ) or define( 'WPOWP_TEMPLATES', WPOWP_DIR . 'templates/' );
-defined( 'WPOWP_API_ERROR_TEXT' ) or define( 'WPOWP_API_ERROR_TEXT', __( 'Error Processing data!', 'wpowp' ) );
-defined( 'WPOWP_ADMIN_CONFIRM_RESET_TEXT' ) or define( 'WPOWP_ADMIN_CONFIRM_RESET_TEXT', __( 'This action is not recoverable. Are you sure you want to reset this setting?', 'wpowp' ) );
 if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
     // Create a helper function for easy SDK access.
     function wpowp_fs() {
@@ -66,8 +62,6 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
             if ( !defined( 'WP_FS__PRODUCT_4030_MULTISITE' ) ) {
                 define( 'WP_FS__PRODUCT_4030_MULTISITE', true );
             }
-            // Freemius SDK loaded via composer.
-            include_once WPOWP_DIR . '/vendor/freemius/wordpress-sdk/start.php';
             $wpowp_fs = fs_dynamic_init( array(
                 'id'               => '4030',
                 'slug'             => 'wc-place-order-without-payment',
@@ -86,6 +80,7 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
                     'slug'       => 'wpowp-settings',
                     'first-path' => 'admin.php?page=wpowp-settings&tab=settings',
                     'support'    => false,
+                    'contact'    => true,
                 ),
                 'is_live'          => true,
                 'anonymous_mode'   => true,
@@ -108,14 +103,13 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
          * @since 2.3
          */
         private function __construct() {
+            // Plugin Init
             add_action( 'init', array($this, 'before_plugin_load') );
-            // On plugin init
-            add_action( 'wp', array($this, 'on_plugin_load'), 10 );
             // Add action links
             add_action( 'plugin_action_links_' . plugin_basename( __FILE__ ), array($this, 'action_links') );
             // Run Plugin
             add_action( 'wp_loaded', array($this, 'run_plugin'), 20 );
-            add_action( 'plugins_loaded', array($this, 'init_admin'), 20 );
+            add_action( 'init', array($this, 'init_admin'), 20 );
             // HPOS Compatibility
             add_action( 'before_woocommerce_init', array($this, 'declare_compatibility'), 30 );
             // Add WC_Email on WooCommerce Init
@@ -128,6 +122,10 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
          * @return void
          */
         public function before_plugin_load() {
+            defined( 'WPOWP_NAME' ) or define( 'WPOWP_NAME', __( 'Place Order Without Payment', 'wpowp' ) );
+            defined( 'WPOWP_SHORT_NAME' ) or define( 'WPOWP_SHORT_NAME', __( 'Place Order', 'wpowp' ) );
+            defined( 'WPOWP_API_ERROR_TEXT' ) or define( 'WPOWP_API_ERROR_TEXT', __( 'Error Processing data!', 'wpowp' ) );
+            defined( 'WPOWP_ADMIN_CONFIRM_RESET_TEXT' ) or define( 'WPOWP_ADMIN_CONFIRM_RESET_TEXT', __( 'This action is not recoverable. Are you sure you want to reset this setting?', 'wpowp' ) );
             if ( !class_exists( 'woocommerce' ) ) {
                 add_action( 'admin_notices', array($this, 'wc_not_active') );
                 return;
@@ -136,15 +134,7 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
                 add_action( 'admin_notices', array($this, 'wc_block_checkout') );
                 return;
             }
-        }
-
-        /**
-         * Before Plugin Load
-         *
-         * @return void
-         */
-        public function on_plugin_load() {
-            load_plugin_textdomain( 'wpowp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+            load_plugin_textdomain( 'wpowp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
         }
 
         /**
@@ -158,6 +148,21 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             // Init API
             WPOWP_Rest_API::get_instance();
             $options = WPOWP_Admin::get_instance()->get_settings();
+            if ( wpowp_fs()->is_paying_or_trial() ) {
+                // Skip Payment for premium only
+                $saved_rules = WPOWP_Rest_API::get_instance()->fetch_rules( 0 );
+                $process_rules = WPOWP_Rules::get_instance()->process_rules( $saved_rules );
+                // Show/Hide Quote button
+                $quote_only = filter_var( $options['quote_only'], FILTER_VALIDATE_BOOLEAN );
+                $show_quote_btn = $quote_only || !empty( $process_rules ) && $process_rules['requestQuoteSwitch'];
+                if ( $show_quote_btn ) {
+                    $this->show_quote_button();
+                }
+                // Skip Payment based on Saved Rules
+                if ( !empty( $process_rules ) && $process_rules['placeOrderSwitch'] ) {
+                    $this->skip_payment();
+                }
+            }
             // Skip Payment sitewide
             if ( !empty( filter_var( $options['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) && !is_admin() ) {
                 $this->skip_payment();
@@ -230,8 +235,20 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             if ( $enabled_sitewide ) {
                 $this->disable_payment();
             }
+            if ( wpowp_fs()->is_paying_or_trial() ) {
+                // Disable payment if necessary for premium version
+                if ( $skip_payment ) {
+                    $this->disable_payment();
+                }
+            }
         }
 
+        /**
+         * Show Quote Button.
+         *
+         * @return void
+         * @since 2.3
+         */
         public function show_quote_button() {
             $admin_instance = WPOWP_Admin::get_instance();
             $quote_btn_pos = $admin_instance->get_settings( 'quote_button_postion' );

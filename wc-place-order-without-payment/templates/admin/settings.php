@@ -14,7 +14,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 		<table class="form-table wpowp-content-table">
 			<tbody>
 
-				<?php if ( $wpowp_fs->is_paying() ) { ?>
+				<?php if ( $wpowp_fs->is_paying_or_trial() ) { ?>
 					<tr>
 					<th scope="row"><?php esc_html_e( 'Enable Site-Wide', 'wpowp' ); ?></th>
 					<td>
@@ -90,8 +90,8 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 							for="wpowp_order_status"><?php esc_html_e( 'Hide Price', 'wpowp' ); ?></label>
 					</th>
 					<td>					
-						<label class="radio-inline"><input type="radio" name="wpowp_hide_price" value="no" <?php echo ( 'no' === $option['hide_price'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'None', 'wpowp' ); ?> </label> 
-						<label class="radio-inline"><input type="radio" name="wpowp_hide_price" value="logged_out" <?php echo ( 'logged_out' === $option['hide_price'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'Logged Out user', 'wpowp' ); ?> </label>											
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_price" value="no" <?php echo ( 'no' === $option['hide_price'] ) ? 'checked' : ''; ?> /> <?php esc_html_e( 'None', 'wpowp' ); ?> </label> 
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_price" value="logged_out" <?php echo ( 'logged_out' === $option['hide_price'] ) ? 'checked' : ''; ?> /> <?php esc_html_e( 'Logged Out user', 'wpowp' ); ?> </label>											
 						<p><?php esc_html_e( '( Hide Product Price )', 'wpowp' ); ?></p>
 					</td>
 				</tr>
@@ -101,13 +101,13 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 							for="wpowp_order_status"><?php esc_html_e( 'Hide Additional Information Tab', 'wpowp' ); ?></label>
 					</th>
 					<td>
-						<label class="radio-inline"><input type="radio" name="wpowp_hide_additional_info_tab" value="no" <?php echo ( 'no' === $option['hide_additional_info_tab'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'None', 'wpowp' ); ?> </label> 
-						<label class="radio-inline"><input type="radio" name="wpowp_hide_additional_info_tab" value="logged_out" <?php echo ( 'logged_out' === $option['hide_additional_info_tab'] ) ? 'checked':'' ?> /> <?php esc_html_e( 'Logged Out user', 'wpowp' ); ?> </label>																						
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_additional_info_tab" value="no" <?php echo ( 'no' === $option['hide_additional_info_tab'] ) ? 'checked' : ''; ?> /> <?php esc_html_e( 'None', 'wpowp' ); ?> </label> 
+						<label class="radio-inline"><input type="radio" name="wpowp_hide_additional_info_tab" value="logged_out" <?php echo ( 'logged_out' === $option['hide_additional_info_tab'] ) ? 'checked' : ''; ?> /> <?php esc_html_e( 'Logged Out user', 'wpowp' ); ?> </label>																						
 						<p><?php esc_html_e( '( Hide Additional Information Tab on Product Page )', 'wpowp' ); ?></p>
 					</td>
 				</tr>				
 				<?php
-				if ( $wpowp_fs->is_paying() ) {
+				if ( $wpowp_fs->is_paying_or_trial() ) {
 					?>
 									
 				<tr class="wpowp-admin-separator-1">
@@ -222,7 +222,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 			</tbody>
 		</table>		
 		<?php
-		if ( $wpowp_fs->is_not_paying() ) {
+		if ( ! $wpowp_fs->is_paying_or_trial() ) {
 			?>
 									
 			<table class="form-table wpowp-content-table" >

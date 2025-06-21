@@ -25,7 +25,7 @@ $rules_instance = WPOWP_Rules::get_instance();
 		<button type="button" class="button button-secondary" id="add-group-btn">
 			<?php esc_html_e( 'Add New Rule', 'wpowp' ); ?>
 		</button>
-		<?php if ( $wpowp_fs->is_paying() ) { ?>						
+		<?php if ( $wpowp_fs->is_paying_or_trial() ) { ?>						
 		<!-- Save Changes Button -->
 		<button type="button" class="button button-primary" id="wctrpro-save-tyrules">
 			<?php esc_html_e( 'Save changes', 'woocommerce' ); ?>

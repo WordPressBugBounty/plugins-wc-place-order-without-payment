@@ -8,13 +8,13 @@ $div = '<nav class="mt-3 nav nav-pills justify-content-center">';
 
 $div .= '<li class="nav-item"><a class="nav-link ' . ( 'settings' === $current_tab ? 'active' : '' ) . '"  href="' . admin_url( 'admin.php?page=' . WPOWP_PLUGIN_SLUG ) . '&tab=settings">' . __( 'Settings', 'wpowp' ) . '</a>&nbsp;</li>&nbsp;';
 
-if ( $wpowp_fs->is_paying() ) {
+if ( $wpowp_fs->is_paying_or_trial() ) {
 	$div .= '<li class="nav-item"><a class="nav-link ' . ( 'rules' === $current_tab ? 'active' : '' ) . '"  href="' . admin_url( 'admin.php?page=' . WPOWP_PLUGIN_SLUG ) . '&tab=rules">' . __( 'Rules', 'wpowp' ) . '</a>&nbsp;</li>&nbsp;';
 } else {
 	$div .= '<li class="nav-item"><a class="nav-link ' . ( 'rules' === $current_tab ? 'active' : '' ) . '"  href="' . admin_url( 'admin.php?page=' . WPOWP_PLUGIN_SLUG ) . '&tab=rules">' . __( 'Rules (PRO)', 'wpowp' ) . '</a>&nbsp;</li>&nbsp;';
 }
 
-if ( $wpowp_fs->is_paying() ) {
+if ( $wpowp_fs->is_paying_or_trial() ) {
 	$div .= '<li class="nav-item"><a class="nav-link ' . ( 'quote-only' === $current_tab ? 'active' : '' ) . '"  href="' . admin_url( 'admin.php?page=' . WPOWP_PLUGIN_SLUG ) . '&tab=quote-only">' . __( 'Request Quote', 'wpowp' ) . '</a>&nbsp;</li>&nbsp;';
 } else {
 	$div .= '<li class="nav-item"><a class="nav-link ' . ( 'quote-only' === $current_tab ? 'active' : '' ) . '"  href="' . admin_url( 'admin.php?page=' . WPOWP_PLUGIN_SLUG ) . '&tab=quote-only">' . __( 'Request Quote (PRO)', 'wpowp' ) . '</a>&nbsp;</li>&nbsp;';

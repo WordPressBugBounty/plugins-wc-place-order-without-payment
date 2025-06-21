@@ -6,384 +6,393 @@
  * @package WPOWP
  * @since 2.3
  */
+
 namespace WPOWP;
 
 use WPOWP\Traits\Get_Instance;
-if ( !class_exists( 'WPOWP_Front' ) ) {
-    class WPOWP_Front {
-        use Get_Instance;
-        private $settings = '';
 
-        /**
-         * Constructor
-         *
-         * return void
-         */
-        public function __construct() {
-            $this->settings = WPOWP_Admin::get_instance()->get_settings();
-            $this->handle_front( $this->settings );
-            // Update Order status
-            add_action(
-                'woocommerce_thankyou',
-                array($this, 'update_order_status'),
-                10,
-                1
-            );
-            // Hide Place Order button
-            add_filter( 'woocommerce_order_button_html', array($this, 'hide_place_order_button') );
-            // Hide price with CSS
-            add_action( 'wp_head', array($this, 'hide_prices_with_css') );
-            add_action( 'plugins_loaded', array($this, 'hide_prices_sitewide__premium_only') );
-        }
+if ( ! class_exists( 'WPOWP_Front' ) ) {
+	class WPOWP_Front {
 
-        /**
-         * Handle Front
-         *
-         * @param  array $settings
-         * @return void
-         */
-        public function handle_front( $settings ) {
-            // Fetch Applicable Rules
-            $process_rules = wpowp_process_rules();
-            if ( !empty( $settings ) && is_array( $settings ) || is_array( $process_rules ) ) {
-                $skip_cart = $settings['skip_cart'];
-                // SKip Cart functionality
-                if ( true === filter_var( $skip_cart, FILTER_VALIDATE_BOOLEAN ) ) {
-                    add_filter( 'woocommerce_add_to_cart_redirect', array($this, 'skip_cart') );
-                    add_filter( 'wc_add_to_cart_message_html', '__return_empty_string' );
-                    add_filter( 'option_woocommerce_enable_ajax_add_to_cart', '__return_false' );
-                    add_filter(
-                        'woocommerce_get_price_html',
-                        array($this, 'free_product'),
-                        10,
-                        2
-                    );
-                }
-                if ( false === filter_var( $settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) ) {
-                    add_filter( 'woocommerce_product_single_add_to_cart_text', array($this, 'cart_btntext') );
-                    add_filter( 'woocommerce_product_add_to_cart_text', array($this, 'cart_btntext') );
-                }
-                if ( true === filter_var( $settings['free_product'], FILTER_VALIDATE_BOOLEAN ) ) {
-                    add_filter(
-                        'woocommerce_get_price_html',
-                        array($this, 'free_product'),
-                        10,
-                        2
-                    );
-                    if ( true === filter_var( $settings['free_product_on_cart'], FILTER_VALIDATE_BOOLEAN ) ) {
-                        // Cart and minicart
-                        add_filter(
-                            'woocommerce_cart_item_price',
-                            array($this, 'cart_item_price_html'),
-                            10,
-                            3
-                        );
-                    }
-                    if ( true === filter_var( $settings['free_product_on_checkout'], FILTER_VALIDATE_BOOLEAN ) ) {
-                        // Cart and Checkout
-                        add_filter(
-                            'woocommerce_cart_item_subtotal',
-                            array($this, 'checkout_item_subtotal_html'),
-                            10,
-                            3
-                        );
-                    }
-                }
-                // Checkout Order button text
-                if ( false === filter_var( $settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) && !empty( $settings['order_button_text'] ) || !empty( $process_rules['orderButtonTextSwitch'] ) ) {
-                    // Add WC Order Button Filter
-                    add_filter( 'woocommerce_order_button_text', array($this, 'order_btntext') );
-                }
-                // Remove Taxes
-                if ( true === filter_var( $settings['remove_taxes'], FILTER_VALIDATE_BOOLEAN ) ) {
-                    add_filter(
-                        'woocommerce_cart_tax_totals',
-                        array($this, 'remove_cart_tax_totals'),
-                        10,
-                        2
-                    );
-                    add_filter(
-                        'woocommerce_calculated_total',
-                        array($this, 'exclude_tax_cart_total'),
-                        10,
-                        2
-                    );
-                    add_filter(
-                        'woocommerce_subscriptions_calculated_total',
-                        array($this, 'exclude_tax_cart_total'),
-                        10,
-                        2
-                    );
-                }
-                // Hide woocommerce prices
-                if ( 'logged_out' === $settings['hide_price'] && !is_user_logged_in() ) {
-                    $this->hide_woocommerce_prices();
-                }
-                // Hide additional info tab
-                if ( 'logged_out' === $settings['hide_additional_info_tab'] ) {
-                    add_filter( 'woocommerce_product_tabs', array($this, 'remove_additional_info_tab') );
-                }
-            }
-        }
+		use Get_Instance;
 
-        /**
-         * Skip Cart
-         *
-         * @return URL
-         */
-        public function skip_cart() {
-            return wc_get_checkout_url();
-        }
+		private $settings = '';
 
-        /**
-         * Cart BtnText
-         *
-         * @return string
-         */
-        public function cart_btntext() {
-            $add_cart_label = $this->settings['add_cart_text'];
-            $add_cart_label = ( 'Buy Now' === trim( $add_cart_label ) ? __( 'Buy Now', 'wpowp' ) : $add_cart_label );
-            $add_cart_txt = apply_filters( 'wpowp_translate_add_cart_txt', $add_cart_label );
-            return ( false === filter_var( $this->settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) ? esc_html( $add_cart_txt ) : '' );
-        }
+		/**
+		 * Constructor
+		 *
+		 * return void
+		 */
+		public function __construct() {
 
-        /**
-         * Free Product
-         *
-         * @param  float  $price
-         * @param  object $product
-         * @return $price
-         */
-        public function free_product( $price, $product ) {
-            $free_price_label = $this->settings['free_product_text'];
-            $free_price_label = ( 'FREE' === trim( $free_price_label ) ? __( 'FREE', 'wpowp' ) : $free_price_label );
-            $free_price_txt = apply_filters( 'wpowp_translate_free_product_text', $free_price_label );
-            if ( $product->is_type( 'variable' ) ) {
-                $prices = $product->get_variation_prices( true );
-                $min_price = current( $prices['price'] );
-                if ( 0 === $min_price ) {
-                    $max_price = end( $prices['price'] );
-                    $min_reg_price = current( $prices['regular_price'] );
-                    $max_reg_price = end( $prices['regular_price'] );
-                    if ( $min_price !== $max_price ) {
-                        $price = wc_format_price_range( $free_price_txt, $max_price );
-                        $price .= $product->get_price_suffix();
-                    } elseif ( $product->is_on_sale() && $min_reg_price === $max_reg_price ) {
-                        $price = wc_format_sale_price( wc_price( $max_reg_price ), $free_price_txt );
-                        $price .= $product->get_price_suffix();
-                    } else {
-                        $price = $free_price_txt;
-                    }
-                }
-            } elseif ( '' !== $product->get_price() && 0 == floatval( $product->get_price() ) ) {
-                $price = '<span class="woocommerce-Price-amount amount">' . esc_html( $free_price_txt ) . '</span>';
-            }
-            return $price;
-        }
+			$this->settings = WPOWP_Admin::get_instance()->get_settings();
+			$this->handle_front( $this->settings );
+			// Update Order status
+			add_action( 'woocommerce_thankyou', array( $this, 'update_order_status' ), 10, 1 );
+			// Hide Place Order button
+			add_filter( 'woocommerce_order_button_html', array( $this, 'hide_place_order_button' ) );
+			// Hide price with CSS
+			add_action( 'wp_head', array( $this, 'hide_prices_with_css' ) );
+		}
 
-        /**
-         * Free Product
-         *
-         * @param  string $price_html
-         * @param  object $cart_item
-         * @param  object $cart_item_key
-         * @return $price
-         */
-        function cart_item_price_html( $price_html, $cart_item, $cart_item_key ) {
-            // phpcs:ignore
-            if ( 0 === absint( $cart_item['data']->get_price() ) ) {
-                return '<span class="woocommerce-Price-amount amount">' . $this->settings['free_product_text'] . '</span>';
-            }
-            return $price_html;
-        }
+		/**
+		 * Handle Front
+		 *
+		 * @param  array $settings
+		 * @return void
+		 */
+		public function handle_front( $settings ) {
 
-        /**
-         * Free Product
-         *
-         * @param  string $subtotal_html
-         * @param  object $cart_item
-         * @param  object $cart_item_key
-         * @return $price
-         */
-        function checkout_item_subtotal_html( $subtotal_html, $cart_item, $cart_item_key ) {
-            // phpcs:ignore
-            if ( 0 === absint( $cart_item['data']->get_price() ) ) {
-                return '<span class="woocommerce-Price-amount amount">' . $this->settings['free_product_text'] . '</span>';
-            }
-            return $subtotal_html;
-        }
+			// Fetch Applicable Rules
+			$process_rules = wpowp_process_rules();
 
-        /**
-         * Update Order Status
-         *
-         * @param  int $order_id
-         * @return void
-         */
-        public function update_order_status( $order_id ) {
-            if ( absint( $order_id ) > 0 ) {
-                $order = new \WC_Order($order_id);
-                $order_status = $order->get_status();
-                if ( !empty( $order->get_payment_method() ) ) {
-                    return;
-                }
-                $wpowp_ordered = false;
-                if ( empty( $order->get_meta( 'wpowp-order', false ) ) ) {
-                    // Add the meta data
-                    $order->update_meta_data( 'wpowp-order', 'Place Order', false );
-                    // Save the order data
-                    $order->save();
-                } else {
-                    $wpowp_ordered = true;
-                }
-                if ( has_filter( 'wpowp_skip_update_order_status' ) ) {
-                    $skip_status_update = apply_filters( 'wpowp_skip_update_order_status', false );
-                    // If filter is true and elcluded elements in Order Items skip Order Update
-                    if ( false !== $skip_status_update && $this->exclude_elements( $order_id ) ) {
-                        return;
-                    }
-                }
-                if ( !$wpowp_ordered && 'pending' !== $order_status && 'completed' !== $order_status ) {
-                    $option_order_status = \WPOWP\WPOWP_Admin::get_instance()->get_settings( 'order_status' );
-                    $status = apply_filters( 'wpowp_filter_order_status', wp_kses_post( $option_order_status ) );
-                    // Update Order status
-                    $order->update_status( $status );
-                }
-            }
-        }
+			if ( ( ! empty( $settings ) && is_array( $settings ) ) || is_array( $process_rules ) ) {
 
-        /**
-         * Order BtnText
-         *
-         * @return string
-         */
-        public function order_btntext() {
-            $order_btntext = $this->settings['order_button_text'];
-            $order_btntext = ( 'Place Order' === trim( $order_btntext ) ? __( 'Place Order', 'wpowp' ) : $order_btntext );
-            $order_button_text = apply_filters( 'wpowp_translate_add_cart_txt', $order_btntext );
-            return esc_html( $order_button_text );
-        }
+				$skip_cart = $settings['skip_cart'];
 
-        /**
-         * Exclude Elements
-         *
-         * @return void()
-         * @since 2.5.7
-         */
-        public function exclude_elements( $order_id = 0 ) {
-            $items_list = array();
-            if ( absint( $order_id ) > 0 ) {
-                $order = new \WC_Order($order_id);
-                $order_items = $order->get_items();
-                if ( !empty( $order_items ) ) {
-                    foreach ( $order_items as $line_item ) {
-                        $items_list[] = $line_item->get_product_id();
-                    }
-                    // Exclude Product IDS from Place Order Without Payment
-                    if ( has_filter( 'wpowp_exclude_products' ) && !empty( $items_list ) ) {
-                        $exclude_products = apply_filters( 'wpowp_exclude_products', array() );
-                        if ( !empty( $exclude_products ) && array_intersect( $items_list, explode( ',', $exclude_products ) ) ) {
-                            return true;
-                        }
-                    }
-                    // Exclude Product Categories from Place Order Without Payment
-                    if ( has_filter( 'wpowp_exclude_categories' ) && !empty( $items_list ) ) {
-                        $filter_categories = apply_filters( 'wpowp_exclude_categories', array() );
-                        $exclude_categories = ( !empty( $filter_categories ) ? explode( ',', $filter_categories ) : array() );
-                        if ( !empty( $exclude_categories ) ) {
-                            $items = $items_list;
-                            foreach ( $items as $item ) {
-                                if ( has_term( $exclude_categories, 'product_cat', $item ) ) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return false;
-        }
+				// SKip Cart functionality
+				if ( true === filter_var( $skip_cart, FILTER_VALIDATE_BOOLEAN ) ) {
+					add_filter( 'woocommerce_add_to_cart_redirect', array( $this, 'skip_cart' ) );
+					add_filter( 'wc_add_to_cart_message_html', '__return_empty_string' );
+					add_filter( 'option_woocommerce_enable_ajax_add_to_cart', '__return_false' );
+					add_filter( 'woocommerce_get_price_html', array( $this, 'free_product' ), 10, 2 );
+				}
 
-        /**
-         * Hide Place Order Button
-         *
-         * @return void
-         * @since 2.5.9
-         */
-        public function hide_place_order_button( $button ) {
-            $hide_order_btn = $this->settings['hide_place_order_button'];
-            if ( true === filter_var( $hide_order_btn, FILTER_VALIDATE_BOOLEAN ) ) {
-                return '';
-            }
-            return $button;
-        }
+				if ( false === filter_var( $settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) ) {
+					add_filter( 'woocommerce_product_single_add_to_cart_text', array( $this, 'cart_btntext' ) );
+					add_filter( 'woocommerce_product_add_to_cart_text', array( $this, 'cart_btntext' ) );
+				}
 
-        /**
-         * Exclude tax cart total
-         *
-         * @return void
-         * @since 2.6.0
-         */
-        public function exclude_tax_cart_total( $total, $instance ) {
-            // phpcs:ignore
-            // If it is the cart subtract the tax
-            if ( is_cart() ) {
-                $total = round( WC()->cart->cart_contents_total + WC()->cart->shipping_total + WC()->cart->fee_total, WC()->cart->dp );
-            }
-            return $total;
-        }
+				if ( true === filter_var( $settings['free_product'], FILTER_VALIDATE_BOOLEAN ) ) {
+					add_filter( 'woocommerce_get_price_html', array( $this, 'free_product' ), 10, 2 );
 
-        /**
-         * Remove Cart Total Taxes
-         *
-         * @return void
-         * @since 2.6.0
-         */
-        public function remove_cart_tax_totals( $tax_totals, $instance ) {
-            // phpcs:ignore
-            if ( is_cart() || is_checkout() ) {
-                $tax_totals = array();
-            }
-            return $tax_totals;
-        }
+					if ( true === filter_var( $settings['free_product_on_cart'], FILTER_VALIDATE_BOOLEAN ) ) {
+						// Cart and minicart
+						add_filter( 'woocommerce_cart_item_price', array( $this, 'cart_item_price_html' ), 10, 3 );
+					}
 
-        /**
-         * Remove additional info tab
-         *
-         * @param  array $tabs
-         * @return $tabs
-         * @since 2.6.5
-         */
-        public function remove_additional_info_tab( $tabs ) {
-            if ( is_product() && !is_user_logged_in() ) {
-                unset($tabs['additional_information']);
-            }
-            return $tabs;
-        }
+					if ( true === filter_var( $settings['free_product_on_checkout'], FILTER_VALIDATE_BOOLEAN ) ) {
+						// Cart and Checkout
+						add_filter( 'woocommerce_cart_item_subtotal', array( $this, 'checkout_item_subtotal_html' ), 10, 3 );
+					}
+				}
 
-        /**
-         * Remove hide woocommerce prices
-         *
-         * @return void()
-         * @since 2.6.5
-         */
-        public function hide_woocommerce_prices() {
-            // Remove price from product loop (category/shop pages)
-            remove_action( 'woocommerce_after_shop_loop_item_title', 'woocommerce_template_loop_price', 10 );
-            // Remove price from single product page
-            remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_price', 10 );
-            // Remove price from product widgets
-            remove_action( 'woocommerce_widget_shopping_cart_total', 'woocommerce_widget_shopping_cart_subtotal', 10 );
-        }
+				// Checkout Order button text
+				if ( ( false === filter_var( $settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) && ! empty( $settings['order_button_text'] ) ) || ! empty( $process_rules['orderButtonTextSwitch'] ) ) {
+					// Add WC Order Button Filter
+					add_filter( 'woocommerce_order_button_text', array( $this, 'order_btntext' ) );
+				}
 
-        /**
-         * Remove hide woocommerce prices
-         *
-         * @return void()
-         * @since 2.6.5
-         */
-        public function hide_prices_with_css() {
-            if ( 'logged_out' === $this->settings['hide_price'] && !is_user_logged_in() ) {
-                ?>
+				// Remove Taxes
+				if ( true === filter_var( $settings['remove_taxes'], FILTER_VALIDATE_BOOLEAN ) ) {
+					add_filter( 'woocommerce_cart_tax_totals', array( $this, 'remove_cart_tax_totals' ), 10, 2 );
+					add_filter( 'woocommerce_calculated_total', array( $this, 'exclude_tax_cart_total' ), 10, 2 );
+					add_filter( 'woocommerce_subscriptions_calculated_total', array( $this, 'exclude_tax_cart_total' ), 10, 2 );
+				}
+
+				// Hide woocommerce prices
+				if ( 'logged_out' === $settings['hide_price'] && ! is_user_logged_in() ) {
+					$this->hide_woocommerce_prices();
+				}
+
+				// Hide additional info tab
+				if ( 'logged_out' === $settings['hide_additional_info_tab'] ) {
+					add_filter( 'woocommerce_product_tabs', array( $this, 'remove_additional_info_tab' ) );
+				}
+			}
+
+			// Hide prices based on settings
+			$this->hide_prices_sitewide__premium_or_trial_only();
+		}
+
+		/**
+		 * Skip Cart
+		 *
+		 * @return URL
+		 */
+		public function skip_cart() {
+			return wc_get_checkout_url();
+		}
+
+		/**
+		 * Cart BtnText
+		 *
+		 * @return string
+		 */
+		public function cart_btntext() {
+			$add_cart_label = $this->settings['add_cart_text'];
+			$add_cart_label = ( 'Buy Now' === trim( $add_cart_label ) ) ? __( 'Buy Now', 'wpowp' ) : $add_cart_label;
+			$add_cart_txt   = apply_filters( 'wpowp_translate_add_cart_txt', $add_cart_label );
+
+			return ( false === filter_var( $this->settings['standard_add_cart'], FILTER_VALIDATE_BOOLEAN ) ) ? esc_html( $add_cart_txt ) : '';
+		}
+
+		/**
+		 * Free Product
+		 *
+		 * @param  float  $price
+		 * @param  object $product
+		 * @return $price
+		 */
+		public function free_product( $price, $product ) {
+
+			$free_price_label = $this->settings['free_product_text'];
+			$free_price_label = ( 'FREE' === trim( $free_price_label ) ) ? __( 'FREE', 'wpowp' ) : $free_price_label;
+			$free_price_txt   = apply_filters( 'wpowp_translate_free_product_text', $free_price_label );
+
+			if ( $product->is_type( 'variable' ) ) {
+				$prices    = $product->get_variation_prices( true );
+				$min_price = current( $prices['price'] );
+				if ( 0 === $min_price ) {
+					$max_price     = end( $prices['price'] );
+					$min_reg_price = current( $prices['regular_price'] );
+					$max_reg_price = end( $prices['regular_price'] );
+					if ( $min_price !== $max_price ) {
+						$price  = wc_format_price_range( $free_price_txt, $max_price );
+						$price .= $product->get_price_suffix();
+					} elseif ( $product->is_on_sale() && $min_reg_price === $max_reg_price ) {
+						$price  = wc_format_sale_price( wc_price( $max_reg_price ), $free_price_txt );
+						$price .= $product->get_price_suffix();
+					} else {
+						$price = $free_price_txt;
+					}
+				}
+			} elseif ( '' !== $product->get_price() && 0 == floatval( $product->get_price() ) ) {
+				$price = '<span class="woocommerce-Price-amount amount">' . esc_html( $free_price_txt ) . '</span>';
+			}
+
+			return $price;
+		}
+
+		/**
+		 * Free Product
+		 *
+		 * @param  string $price_html
+		 * @param  object $cart_item
+		 * @param  object $cart_item_key
+		 * @return $price
+		 */
+		function cart_item_price_html( $price_html, $cart_item, $cart_item_key ) { // phpcs:ignore
+			if ( 0 === absint( $cart_item['data']->get_price() ) ) {
+				return '<span class="woocommerce-Price-amount amount">' . $this->settings['free_product_text'] . '</span>';
+			}
+			return $price_html;
+		}
+
+		/**
+		 * Free Product
+		 *
+		 * @param  string $subtotal_html
+		 * @param  object $cart_item
+		 * @param  object $cart_item_key
+		 * @return $price
+		 */
+		function checkout_item_subtotal_html( $subtotal_html, $cart_item, $cart_item_key ) { // phpcs:ignore
+			if ( 0 === absint( $cart_item['data']->get_price() ) ) {
+				return '<span class="woocommerce-Price-amount amount">' . $this->settings['free_product_text'] . '</span>';
+			}
+			return $subtotal_html;
+		}
+
+		/**
+		 * Update Order Status
+		 *
+		 * @param  int $order_id
+		 * @return void
+		 */
+		public function update_order_status( $order_id ) {
+
+			if ( absint( $order_id ) > 0 ) {
+
+				$order        = new \WC_Order( $order_id );
+				$order_status = $order->get_status();
+
+				if ( ! empty( $order->get_payment_method() ) ) {
+					return;
+				}
+
+				$wpowp_ordered = false;
+
+				if ( empty( $order->get_meta( 'wpowp-order', false ) ) ) {
+					// Add the meta data
+					$order->update_meta_data( 'wpowp-order', 'Place Order', false );
+					// Save the order data
+					$order->save();
+				} else {
+					$wpowp_ordered = true;
+				}
+
+				if ( has_filter( 'wpowp_skip_update_order_status' ) ) {
+
+					$skip_status_update = apply_filters( 'wpowp_skip_update_order_status', false );
+
+					// If filter is true and elcluded elements in Order Items skip Order Update
+					if ( false !== $skip_status_update && $this->exclude_elements( $order_id ) ) {
+						return;
+					}
+				}
+
+				if ( ! $wpowp_ordered && 'pending' !== $order_status && 'completed' !== $order_status ) {
+
+					$option_order_status = \WPOWP\WPOWP_Admin::get_instance()->get_settings( 'order_status' );
+					$status              = apply_filters( 'wpowp_filter_order_status', wp_kses_post( $option_order_status ) );
+					// Update Order status
+					$order->update_status( $status );
+				}
+			}
+		}
+
+		/**
+		 * Order BtnText
+		 *
+		 * @return string
+		 */
+		public function order_btntext() {
+			$order_btntext     = $this->settings['order_button_text'];
+			$order_btntext     = ( 'Place Order' === trim( $order_btntext ) ) ? __( 'Place Order', 'wpowp' ) : $order_btntext;
+			$order_button_text = apply_filters( 'wpowp_translate_add_cart_txt', $order_btntext );
+			return esc_html( $order_button_text );
+		}
+
+		/**
+		 * Exclude Elements
+		 *
+		 * @return void()
+		 * @since 2.5.7
+		 */
+		public function exclude_elements( $order_id = 0 ) {
+
+			$items_list = array();
+
+			if ( absint( $order_id ) > 0 ) {
+
+				$order       = new \WC_Order( $order_id );
+				$order_items = $order->get_items();
+
+				if ( ! empty( $order_items ) ) {
+
+					foreach ( $order_items as $line_item ) {
+						$items_list[] = $line_item->get_product_id();
+					}
+
+					// Exclude Product IDS from Place Order Without Payment
+
+					if ( has_filter( 'wpowp_exclude_products' ) && ! empty( $items_list ) ) {
+						$exclude_products = apply_filters( 'wpowp_exclude_products', array() );
+						if ( ! empty( $exclude_products ) && array_intersect( $items_list, explode( ',', $exclude_products ) ) ) {
+							return true;
+						}
+					}
+
+					// Exclude Product Categories from Place Order Without Payment
+
+					if ( has_filter( 'wpowp_exclude_categories' ) && ! empty( $items_list ) ) {
+						$filter_categories  = apply_filters( 'wpowp_exclude_categories', array() );
+						$exclude_categories = ! empty( $filter_categories ) ? explode( ',', $filter_categories ) : array();
+						if ( ! empty( $exclude_categories ) ) {
+							$items = $items_list;
+							foreach ( $items as $item ) {
+								if ( has_term( $exclude_categories, 'product_cat', $item ) ) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
+		/**
+		 * Hide Place Order Button
+		 *
+		 * @return void
+		 * @since 2.5.9
+		 */
+		public function hide_place_order_button( $button ) {
+			$hide_order_btn = $this->settings['hide_place_order_button'];
+
+			if ( ( true === filter_var( $hide_order_btn, FILTER_VALIDATE_BOOLEAN ) ) ) {
+				return '';
+			}
+
+			return $button;
+		}
+
+		/**
+		 * Exclude tax cart total
+		 *
+		 * @return void
+		 * @since 2.6.0
+		 */
+		public function exclude_tax_cart_total( $total, $instance ) { // phpcs:ignore
+
+			// If it is the cart subtract the tax
+			if ( is_cart() ) {
+				$total = round( WC()->cart->cart_contents_total + WC()->cart->shipping_total + WC()->cart->fee_total, WC()->cart->dp );
+			}
+
+			return $total;
+		}
+
+		/**
+		 * Remove Cart Total Taxes
+		 *
+		 * @return void
+		 * @since 2.6.0
+		 */
+		public function remove_cart_tax_totals( $tax_totals, $instance ) { // phpcs:ignore
+
+			if ( is_cart() || is_checkout() ) {
+				$tax_totals = array();
+			}
+
+			return $tax_totals;
+		}
+
+		/**
+		 * Remove additional info tab
+		 *
+		 * @param  array $tabs
+		 * @return $tabs
+		 * @since 2.6.5
+		 */
+		public function remove_additional_info_tab( $tabs ) {
+
+			if ( is_product() && ! is_user_logged_in() ) {
+				unset( $tabs['additional_information'] );
+			}
+
+			return $tabs;
+		}
+
+		/**
+		 * Remove hide woocommerce prices
+		 *
+		 * @return void()
+		 * @since 2.6.5
+		 */
+		public function hide_woocommerce_prices() {
+			// Remove price from product loop (category/shop pages)
+			remove_action( 'woocommerce_after_shop_loop_item_title', 'woocommerce_template_loop_price', 10 );
+
+			// Remove price from single product page
+			remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_price', 10 );
+
+			// Remove price from product widgets
+			remove_action( 'woocommerce_widget_shopping_cart_total', 'woocommerce_widget_shopping_cart_subtotal', 10 );
+		}
+
+		/**
+		 * Remove hide woocommerce prices
+		 *
+		 * @return void()
+		 * @since 2.6.5
+		 */
+		public function hide_prices_with_css() {
+			if ( 'logged_out' === $this->settings['hide_price'] && ! is_user_logged_in() ) {
+				?>
 				<style>
 					/* Hide prices on product pages */
 					.price,
@@ -407,25 +416,66 @@ if ( !class_exists( 'WPOWP_Front' ) ) {
 						opacity: 0 !important;
 					}
 				</style>
-				<?php 
-            }
-        }
+				<?php
+			}
+		}
 
-        // Remove price/subtotal columns from cart table
-        public function remove_price_columns_cart( $product_name, $cart_item, $cart_item_key ) {
-            // Just return name without extra price info
-            return $product_name;
-        }
+		public function hide_prices_sitewide__premium_or_trial_only() {
+			
+			// if Checkout ordr pay then dont hide totals
+			if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field( $_GET['pay_for_order'] ) ) {
+				return;
+			}
 
-        // Remove price/subtotal columns from checkout table
-        public function remove_price_columns_checkout( $quantity_html, $cart_item, $cart_item_key ) {
-            // Return just quantity
-            return $quantity_html;
-        }
+			// Hide prices based on setting hide_prices_sitewide
+			if ( isset( $this->settings['hide_prices_sitewide'] ) && 'yes' === $this->settings['hide_prices_sitewide'] ) {
 
-        // Inline CSS to hide headers and columns
-        public function hide_totals_css() {
-            ?>
+				// Frontend output hooks
+				add_filter( 'woocommerce_get_price_html', '__return_empty_string' );
+				add_filter( 'woocommerce_cart_item_price', '__return_empty_string' );
+				add_filter( 'woocommerce_cart_item_subtotal', '__return_empty_string' );
+				add_filter( 'woocommerce_cart_subtotal', '__return_empty_string' );
+				add_filter( 'woocommerce_order_formatted_line_subtotal', '__return_empty_string' );
+				add_filter( 'woocommerce_cart_totals_order_total_html', '__return_empty_string' );
+				add_filter( 'woocommerce_get_formatted_order_total', '__return_empty_string' );
+
+				// Cart / Checkout Totals Table
+				add_filter( 'woocommerce_cart_totals_before_order_total', array( $this, 'remove_cart_total_rows' ), 1 );
+				add_filter( 'woocommerce_cart_totals_after_order_total', array( $this, 'remove_cart_total_rows' ), 1 );
+
+				// Checkout totals table
+				add_filter( 'woocommerce_review_order_before_order_total', array( $this, 'remove_cart_total_rows' ), 1 );
+				add_filter( 'woocommerce_review_order_after_order_total', array( $this, 'remove_cart_total_rows' ), 1 );
+
+				// Order received
+				add_filter( 'woocommerce_order_item_subtotal', '__return_empty_string' );
+
+				// CSS to visually hide remaining labels
+				add_action( 'wp_head', array( $this, 'hide_totals_css' ) );
+				add_action( 'wp_footer', array( $this, 'hide_totals_js' ) );
+
+				// Disable payment if place order button is hidden
+				if ( isset( $this->settings['hide_prices_sitewide'] ) && $this->settings['hide_place_order_button'] ) {
+					wpowp_disable_payment();
+				}
+			}
+		}
+
+		// Remove price/subtotal columns from cart table
+		public function remove_price_columns_cart( $product_name, $cart_item, $cart_item_key ) {
+			// Just return name without extra price info
+			return $product_name;
+		}
+
+		// Remove price/subtotal columns from checkout table
+		public function remove_price_columns_checkout( $quantity_html, $cart_item, $cart_item_key ) {
+			// Return just quantity
+			return $quantity_html;
+		}
+
+		// Inline CSS to hide headers and columns
+		public function hide_totals_css() {
+			?>
 			<style>
 				/* WooCommerce Cart Block: Hide total, subtotal, item prices */
 				/*
@@ -449,17 +499,17 @@ if ( !class_exists( 'WPOWP_Front' ) ) {
 				}
 
 			</style>
-			<?php 
-        }
+			<?php
+		}
 
-        /**
-         * Hide totals JS
-         *
-         * @return void
-         * @since 2.7.0
-         */
-        public function hide_totals_js() {
-            ?>
+		/**
+		 * Hide totals JS
+		 *
+		 * @return void
+		 * @since 2.7.0
+		 */
+		public function hide_totals_js() {
+			?>
 			<script>
 				jQuery(function($) {
 					$('.woocommerce-order-details tfoot tr').each(function() {
@@ -470,17 +520,17 @@ if ( !class_exists( 'WPOWP_Front' ) ) {
 					});
 				});
 			</script>
-			<?php 
-        }
+			<?php
+		}
 
-        /**
-         * Remove Cart Total Rows
-         *
-         * @return void
-         * @since 2.7.0
-         */
-        public function remove_cart_total_rows() {
-            echo '<style>
+		/**
+		 * Remove Cart Total Rows
+		 *
+		 * @return void
+		 * @since 2.7.0
+		 */
+		public function remove_cart_total_rows() {
+			echo '<style>
 					.cart_totals .order-total,
 					.cart-subtotal,
 					.woocommerce-cart-form .product-price,
@@ -493,9 +543,8 @@ if ( !class_exists( 'WPOWP_Front' ) ) {
 						display: none !important;
 					}
 				 </style>';
-            return array();
-        }
-
-    }
+			return array();
+		}
+	}
 
 }

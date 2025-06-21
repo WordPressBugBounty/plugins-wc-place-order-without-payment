@@ -14,7 +14,7 @@ const api_name_space = 'wpowp-api/action';
         xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
       },
       success: function (data) {
-        toastr.success(data.message, '', { "positionClass": "toast-bottom-right", });
+        toastr.success(data.message, '', { "positionClass": "toast-top-right", });
       }
     }, function (data, status) {
       console.log(data);
@@ -39,7 +39,7 @@ const api_name_space = 'wpowp-api/action';
           xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
         },
         success: function (data) {
-          toastr.success(data.message, '', { "positionClass": "toast-bottom-right", });
+          toastr.success(data.message, '', { "positionClass": "toast-top-right", });
           window.location.reload();
         }
       }, function (data, status) {

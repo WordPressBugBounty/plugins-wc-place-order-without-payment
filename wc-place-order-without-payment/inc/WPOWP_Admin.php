@@ -43,7 +43,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			add_filter( 'admin_footer_text', array( $this, 'replace_footer' ) );
 			add_filter( 'update_footer', array( $this, 'replace_version' ), 99 );
 
-			if ( wpowp_fs()->is_paying() ) {
+			if ( wpowp_fs()->is_paying_or_trial() ) {
 				// Add to WooCommerce Email Classes
 				add_filter( 'woocommerce_email_classes', array( $this, 'add_order_notification_email' ) );
 				// Trigger the custom email when order status changes to pending
@@ -97,7 +97,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				'enable_sitewide'                  => true,
 				'hide_price'                       => 'no',
 				'hide_additional_info_tab'         => 'no',
-				'hide_prices_sitewide'              => 'no',
+				'hide_prices_sitewide'             => 'no',
 			);
 		}
 
@@ -207,7 +207,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		 */
 		public function init_admin() {
 
-			if ( isset( $_GET['page'] ) && $_GET['page'] === 'wpowp-settings' ) {
+			if ( isset( $_GET['page'] ) && $_GET['page'] === 'wpowp-settings' ) { // phpcs:ignore
 
 				wp_enqueue_style( 'wpowp-bootstrap', WPOWP_URL . 'assets/css/bootstrap.min.css', array(), '5.0.2' );
 				wp_enqueue_style( 'wpowp-select2', plugins_url( '', WC_PLUGIN_FILE ) . '/assets/css/select2.css', array(), array(), false );
@@ -217,7 +217,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				wp_enqueue_script( 'wpowp-bootstrap', WPOWP_URL . 'assets/js/bootstrap.min.js', array( 'jquery' ), WPOWP_VERSION, true );
 				wp_enqueue_script( 'selectWoo' );
 
-				if ( isset( $_GET['tab'] ) && 'rules' === $_GET['tab'] ) {
+				if ( isset( $_GET['tab'] ) && 'rules' === $_GET['tab'] ) { // phpcs:ignore
 					wp_enqueue_script( 'wpowp-rules', WPOWP_URL . 'assets/js/wpowp-rules.js', array( 'wp-api' ), WPOWP_VERSION, true );
 				}
 				wp_enqueue_script( 'jquery-ui-core' );

@@ -13,7 +13,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 	<h1><?php esc_html_e( 'Request Quote ( Quote Only )', 'wpowp' ); ?></h1>
 	<form id="<?php echo esc_attr( WPOWP_PLUGIN_PREFIX ); ?>settings-form" method="post" action="<?php echo esc_url( admin_url( 'admin.php' ) ); ?>">
 	<?php
-	if ( $wpowp_fs->is_paying() ) {
+	if ( $wpowp_fs->is_paying_or_trial() ) {
 		?>
 		<table class="form-table wpowp-content-table">
 			<tbody>
@@ -178,7 +178,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 			</tbody>
 		</table>
 		<?php
-		if ( $wpowp_fs->is_paying() ) {
+		if ( $wpowp_fs->is_paying_or_trial() ) {
 			?>
 				<p class="submit"><input type="submit" name="<?php echo esc_attr( WPOWP_PLUGIN_PREFIX ); ?>settings-submit" id="<?php echo esc_attr( WPOWP_PLUGIN_PREFIX ); ?>settings-submit" class="button button-primary"
 				value="<?php esc_attr_e( 'Save Changes', 'wpowp' ); ?>"></p>

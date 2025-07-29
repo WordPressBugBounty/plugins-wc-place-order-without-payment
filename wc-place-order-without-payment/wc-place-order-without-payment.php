@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.7.1
+ * Version:           2.7.2
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -27,7 +27,7 @@
  * Requires at least: 6.2
  * Tested up to: 6.8
  * WC requires at least: 8.2
- * WC tested up to: 9.8
+ * WC tested up to: 10.0
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -44,7 +44,7 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.1' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.2' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );

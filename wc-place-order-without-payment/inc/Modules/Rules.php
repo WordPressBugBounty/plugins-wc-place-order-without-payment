@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @package     Thank You Page
+ * @package     WPOWP
  * @since       4.1.6
  */
 

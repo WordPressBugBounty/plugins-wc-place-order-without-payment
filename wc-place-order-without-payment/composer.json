@@ -1,5 +1,5 @@
 {
-    "version": "2.6.6",
+    "version": "2.7.3",
     "name": "neebplugins/wc-place-order-without-payment",
     "description": "WC Place Order Without Payment",
     "type": "wordpress-plugin",
@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": ">=7.4",
-        "freemius/wordpress-sdk": "2.12.1"
+        "freemius/wordpress-sdk": "2.12.2"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

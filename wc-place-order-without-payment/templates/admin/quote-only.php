@@ -67,6 +67,24 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 				</tr>
 				<tr>
 					<th scope="row"><label
+							for="wpowp_order_status_quote"><?php esc_html_e( 'Order Status', 'wpowp' ); ?></label>
+					</th>
+					<td>					
+						<select class="regular-text wc-enhanced-select" name="wpowp_order_status_quote" id="wpowp_order_status_quote">
+							<?php
+							if ( ! empty( $this->order_status_list() ) ) {
+								$status_list = $this->order_status_list(); //phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable 
+								foreach ( $status_list as $key => $label ) {
+									echo '<option value="' . wp_kses_post( $key ) . '" ' . ( $key === $option['order_status_quote'] ? 'selected' : '' ) . '>' . wp_kses_post( $label ) . '</option>';
+								}
+							}
+							?>
+						</select>
+						<p><?php esc_html_e( '( Order status after request quote )', 'wpowp' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label
 							for="wpowp_quote_button_postion"><?php esc_html_e( 'Quote Only Button Position', 'wpowp' ); ?></label>
 					</th>
 					<td>					
@@ -76,7 +94,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 						</select>
 						<p><?php esc_html_e( '( Where to place Quote Only button )', 'wpowp' ); ?></p>
 					</td>
-				</tr>
+				</tr>				
 				<tr>
 					<th scope="row"><?php esc_html_e( 'Quote Button Text', 'wpowp' ); ?></th>
 					<td>
@@ -147,6 +165,24 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 				</tr>
 				<tr>
 					<th scope="row"><label
+							for="wpowp_order_status_quote"><?php esc_html_e( 'Order Status', 'wpowp' ); ?></label>
+					</th>
+					<td>					
+						<select class="regular-text wc-enhanced-select" name="wpowp_order_status_quote" id="wpowp_order_status_quote">
+							<?php
+							if ( ! empty( $this->order_status_list() ) ) {
+								$status_list = $this->order_status_list(); //phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedVariable 
+								foreach ( $status_list as $key => $label ) {
+									echo '<option value="' . wp_kses_post( $key ) . '" ' . ( $key === $option['order_status_quote'] ? 'selected' : '' ) . '>' . wp_kses_post( $label ) . '</option>';
+								}
+							}
+							?>
+						</select>
+						<p><?php esc_html_e( '( Order status after request quote )', 'wpowp' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label
 							for="wpowp_quote_button_postion"><?php esc_html_e( 'Quote Only Button Position', 'wpowp' ); ?></label>
 					</th>
 					<td>					
@@ -156,7 +192,7 @@ $option = $this->get_settings(); // phpcs:ignore VariableAnalysis.CodeAnalysis.V
 						</select>
 						<p><?php esc_html_e( '( Where to place Quote Only button )', 'wpowp' ); ?></p>
 					</td>
-				</tr>
+				</tr>				
 				<tr>
 					<th scope="row"><label
 							for="wpowp_quote_button_postion"><?php esc_html_e( 'Quote Only Button Position', 'wpowp' ); ?></label>

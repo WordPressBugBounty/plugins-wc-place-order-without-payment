@@ -98,6 +98,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				'hide_price'                       => 'no',
 				'hide_additional_info_tab'         => 'no',
 				'hide_prices_sitewide'             => 'no',
+				'order_status_quote' => 'pending'
 			);
 		}
 

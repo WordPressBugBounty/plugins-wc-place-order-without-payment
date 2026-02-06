@@ -16,8 +16,13 @@ class Rules {
 
 	protected $options   = array();
 	protected $operators = array();
-	protected $rules     = array();	
+	protected $rules     = array();
 
+	/**
+	 * Constructor
+	 * 
+	 * @since 4.1.6
+	 */
 	public function __construct() {
 		// Define options and option groups
 		$this->options = array(
@@ -127,6 +132,11 @@ class Rules {
 		return $html;
 	}
 
+	/**
+	 * Create dropdown pages
+	 *
+	 * @return string
+	 */
 	public function create_dropdown_pages() {
 		$html  = '<select name="rule_pages" class="form-select url-dropdown" required>';
 		$html .= '<option value="">' . esc_html__( 'Select Page', 'thank-you-page-pro' ) . '</option>';
@@ -223,6 +233,7 @@ class Rules {
 
 			$switch                                    = array();
 			$switch['placeOrderSwitch']                = ( isset( $rule_group['placeOrderSwitch'] ) ) ? $rule_group['placeOrderSwitch'] : '';
+			$switch['allowPaymentsSwitch']             = ( isset( $rule_group['allowPaymentsSwitch'] ) ) ? $rule_group['allowPaymentsSwitch'] : '';
 			$switch['requestQuoteSwitch']              = ( isset( $rule_group['requestQuoteSwitch'] ) ) ? $rule_group['requestQuoteSwitch'] : '';
 			$switch['orderButtonTextSwitch']           = ( isset( $rule_group['orderButtonTextSwitch'] ) ) ? $rule_group['orderButtonTextSwitch'] : '';
 			$switch['removeShippingFieldsRatesSwitch'] = ( isset( $rule_group['removeShippingFieldsRatesSwitch'] ) ) ? $rule_group['removeShippingFieldsRatesSwitch'] : '';
@@ -236,12 +247,11 @@ class Rules {
 			$valid = $this->evaluate_rules( $rules, $cart_data );
 
 			// Redirect or disable payment methods if valid
-			if ( $valid ) {
+			if ( $valid ) {				
 				return $switch;
 			}
 		}
 	}
-
 
 	/**
 	 * Evaluate multiple rules based on the specified condition.

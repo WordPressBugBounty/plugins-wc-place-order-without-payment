@@ -4,8 +4,8 @@ Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: pre order, woocommerce pre order, request quote, quote request, quote plugin, 
 Requires at least: 6.2
 Tested up to: 6.8
-Stable tag: 2.7.3
-Version: 2.7.3
+Stable tag: 2.7.4
+Version: 2.7.4
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -141,6 +141,10 @@ For support or any inquiries, please contact us at <a href="mailto:nitin247@outl
 Enjoy using the Place order without payment plugin!
 
 == Changelog ==
+** V 2.7.4 **
+* Package Update
+* Added default order status for Request Quote
+* Allow Payment Gateways in RULEs
 ** V 2.7.3 **
 * SDK Update
 ** V 2.7.2 **
@@ -209,5 +213,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.7.3 = 
-* SDK Update
+= 2.7.4 = 
+* Allow Payment Gateways in RULEs + Default order status for Request Quote 

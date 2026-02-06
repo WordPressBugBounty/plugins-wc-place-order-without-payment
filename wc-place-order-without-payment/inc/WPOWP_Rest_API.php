@@ -250,7 +250,7 @@ if ( ! class_exists( 'WPOWP_Rest_API' ) ) {
 		public function save_rules( \WP_REST_Request $request ) {
 
 			$posted_data = $request->get_params();
-			$tyrules     = isset( $posted_data['rules'] ) ? $posted_data['rules'] : '';
+			$tyrules     = isset( $posted_data['rules'] ) ? $posted_data['rules'] : '';			
 
 			update_option( $this->option, $tyrules );
 

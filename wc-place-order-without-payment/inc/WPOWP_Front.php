@@ -33,6 +33,8 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 			add_filter( 'woocommerce_order_button_html', array( $this, 'hide_place_order_button' ) );
 			// Hide price with CSS
 			add_action( 'wp_head', array( $this, 'hide_prices_with_css' ) );
+			// Add Order Meta on Submission
+			add_action( 'woocommerce_checkout_create_order', array( $this, 'add_quote_order_meta' ), 10, 2 );
 		}
 
 		/**
@@ -157,7 +159,7 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 						$price = $free_price_txt;
 					}
 				}
-			} elseif ( '' !== $product->get_price() && 0 == floatval( $product->get_price() ) ) {
+			} elseif ( '' !== $product->get_price() && 0 == floatval( $product->get_price() ) ) { // phpcs:ignore
 				$price = '<span class="woocommerce-Price-amount amount">' . esc_html( $free_price_txt ) . '</span>';
 			}
 
@@ -208,6 +210,20 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 				$order_status = $order->get_status();
 
 				if ( ! empty( $order->get_payment_method() ) ) {
+					return;
+				}
+
+				// Update order status for Request Quote
+				if ( ! empty( $order->get_meta( '_wpowp_order_type', false ) ) && 'quote' === $order->get_meta( '_wpowp_order_type' ) ) {
+					if ( 'pending' !== $order_status && 'completed' !== $order_status ) {
+
+						$option_quote_status = \WPOWP\WPOWP_Admin::get_instance()->get_settings( 'order_status_quote' );
+						// Update Order status
+						$order->update_status( $option_quote_status );
+						// Delete the custom meta after status update
+						$order->delete_meta_data( '_wpowp_order_type' );
+						$order->save();
+					}
 					return;
 				}
 
@@ -421,9 +437,9 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		}
 
 		public function hide_prices_sitewide__premium_or_trial_only() {
-			
+
 			// if Checkout ordr pay then dont hide totals
-			if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field( $_GET['pay_for_order'] ) ) {
+			if ( isset( $_GET['pay_for_order'] ) && 'true' === sanitize_text_field( $_GET['pay_for_order'] ) ) { // phpcs:ignore
 				return;
 			}
 
@@ -462,13 +478,13 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		}
 
 		// Remove price/subtotal columns from cart table
-		public function remove_price_columns_cart( $product_name, $cart_item, $cart_item_key ) {
+		public function remove_price_columns_cart( $product_name, $cart_item, $cart_item_key ) { // phpcs:ignore
 			// Just return name without extra price info
 			return $product_name;
 		}
 
 		// Remove price/subtotal columns from checkout table
-		public function remove_price_columns_checkout( $quantity_html, $cart_item, $cart_item_key ) {
+		public function remove_price_columns_checkout( $quantity_html, $cart_item, $cart_item_key ) { // phpcs:ignore
 			// Return just quantity
 			return $quantity_html;
 		}
@@ -544,6 +560,20 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 					}
 				 </style>';
 			return array();
+		}
+
+		/**
+		 * Add quote order meta
+		 *
+		 * @params object $order
+		 * @params array $data
+		 * @return void
+		 * @since 2.7.4
+		 */
+		public function add_quote_order_meta( $order, $data ) { // phpcs:ignore						
+			if ( isset( $_POST['wpowp_order_type'] ) && "quote" === $_POST['wpowp_order_type'] ) { // phpcs:ignore
+				$order->add_meta_data( '_wpowp_order_type', 'quote' );
+			}
 		}
 	}
 

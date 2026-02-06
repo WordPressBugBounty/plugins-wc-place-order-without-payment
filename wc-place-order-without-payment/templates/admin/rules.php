@@ -66,6 +66,13 @@ $rules_instance = WPOWP_Rules::get_instance();
 					<label for="placeOrderSwitch"><?php esc_html_e( 'Place Order Without Payment', 'wpowp' ); ?></label>
 				</div>
 
+				<!-- Allow Payment Gateways Switch -->
+				<div class="col">
+					<input class="my-1 allowPaymentsSwitch" type="checkbox" id="allowPaymentsSwitch" name="allowPaymentsSwitch" value="1"
+						title="<?php echo esc_attr( 'Toggle to enable Payment Gateways.', 'wpowp' ); ?>" />
+					<label for="allowPaymentsSwitch"><?php esc_html_e( 'Allow Payment Gateways', 'wpowp' ); ?></label>
+				</div>
+
 				<!-- Request Quote Switch -->
 				<div class="col">
 					<input class="my-1 requestQuoteSwitch" type="checkbox" id="requestQuoteSwitch" name="requestQuoteSwitch" checked value="1"

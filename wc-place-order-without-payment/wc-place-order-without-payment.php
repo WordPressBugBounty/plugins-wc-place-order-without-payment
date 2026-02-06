@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.7.3
+ * Version:           2.7.4
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -27,7 +27,7 @@
  * Requires at least: 6.2
  * Tested up to: 6.8
  * WC requires at least: 8.2
- * WC tested up to: 10.1
+ * WC tested up to: 10.3
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -44,7 +44,7 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.3' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.4' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -234,11 +234,16 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             $enabled_sitewide = filter_var( $admin_instance->get_settings( 'enable_sitewide' ), FILTER_VALIDATE_BOOLEAN );
             // Determine whether to disable payment
             $skip_payment = !empty( $process_rules ) && $process_rules['placeOrderSwitch'];
+            $allow_payments = !empty( $process_rules ) && $process_rules['allowPaymentsSwitch'];
             // Disable payment if necessary
             if ( $enabled_sitewide ) {
                 $this->disable_payment();
             }
             if ( wpowp_fs()->is_paying_or_trial() ) {
+                // Allow payments as per Rules
+                if ( $allow_payments ) {
+                    return;
+                }
                 // Disable payment if necessary for premium version
                 if ( $skip_payment ) {
                     $this->disable_payment();
@@ -351,9 +356,10 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             if ( !empty( $quote_btn_label ) ) {
                 echo '<span class="wpowp-quote-only-label">' . esc_html( $quote_btn_label ) . '</span>';
             }
+            echo '<input id="wpowp-order-type" type="hidden" name="wpowp_order_type" value="no" />';
             echo '<button type="submit" id="wpowp-quote-only" class="button wpowp-quote-only" href="#" onclick="wpowp_remove_payment_methods();">' . esc_html( $quote_btn_text ) . '</button>';
             // Remove WC Payment Methods on Quote Order Click
-            echo '<script>function wpowp_remove_payment_methods(){ jQuery( ".wc_payment_methods, .payment_methods" ).remove(); }</script>';
+            echo '<script>function wpowp_remove_payment_methods(){ jQuery( "#wpowp-order-type" ).val( "quote" ); console.log( jQuery( "#wpowp-order-type" ).val() ) /* jQuery( ".wc_payment_methods, .payment_methods" ).remove(); */ }</script>';
         }
 
         /**
@@ -442,6 +448,7 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         public function wc_block_checkout() {
             $document_url = 'https://nitin247.com/docs/place-order-without-payment/no-payment-method-provided-error/?utm_source=wpowp&utm_campaign=wp-install&utm_medium=plugin&utm_term=WPOWP';
             echo '<div class="notice notice-error is-dismissible"><p>';
+            // translators: 1: opening <strong> tag, 2: closing </strong> tag, 5: opening <a> tag linking to documentation, 6: closing </a> tag.
             printf(
                 esc_html__( 'Place Order without payment for WooCommerce requires Classic Checkout.The %1$s[woocommerce_checkout]%2$s shortcode must be placed on Checkout page. Read documentation %5$sNo Payment Method Provided Error%6$s here.', 'wpowp' ),
                 '<strong>',

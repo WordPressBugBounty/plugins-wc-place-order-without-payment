@@ -13,17 +13,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 do_action( 'woocommerce_email_header', $email_heading, $email );
 ?>
 
-<p><?php printf( esc_html__( 'Dear %s,', 'wpowp' ), esc_html( $order->get_billing_first_name() ) ); ?></p>
+<p>
+	<?php
+		// translators: %s is the customer's billing first name.
+		printf( esc_html__( 'Dear %s,', 'wpowp' ), esc_html( $order->get_billing_first_name() ) );
+	?>
+</p>
 
 <p>
 	<?php
-	printf(
-		esc_html__( 'Thank you for your recent purchase at %1$s. We wanted to inform you that the status of your order #%2$d, placed on %3$s, has been updated to "Pending".', 'wpowp' ),
-		esc_html( get_bloginfo( 'name' ) ),
-		esc_html( $order->get_id() ),
-		esc_html( wc_format_datetime( $order->get_date_created() ) )
-	);
-	?>
+		
+		printf(
+			// translators: 1: site name, 2: order ID, 3: formatted order date.
+			esc_html__( 'Thank you for your recent purchase at %1$s. We wanted to inform you that the status of your order #%2$d, placed on %3$s, has been updated to "Pending".', 'wpowp' ),
+			esc_html( get_bloginfo( 'name' ) ),
+			esc_html( $order->get_id() ),
+			esc_html( wc_format_datetime( $order->get_date_created() ) )
+		);
+		?>
 </p>
 
 <h3><?php esc_html_e( 'What does this mean?', 'wpowp' ); ?></h3>
@@ -42,9 +49,21 @@ $formatted_order_total = sprintf(
 
 <h3><?php esc_html_e( 'Order Summary:', 'wpowp' ); ?></h3>
 <p>
-	<?php printf( esc_html__( 'Order Number: %d', 'wpowp' ), esc_html( $order->get_id() ) ); ?><br>
-	<?php printf( esc_html__( 'Order Date: %s', 'wpowp' ), esc_html( wc_format_datetime( $order->get_date_created() ) ) ); ?><br>
-	<?php printf( esc_html__( 'Order Total: %s', 'wpowp' ), esc_html( $formatted_order_total ) ); ?>
+	
+	<?php
+		// translators: %d is the order ID number.
+		printf( esc_html__( 'Order Number: %d', 'wpowp' ), esc_html( $order->get_id() ) );
+	?>
+		<br>
+	<?php
+		// translators: %s is the formatted order creation date.
+		printf( esc_html__( 'Order Date: %s', 'wpowp' ), esc_html( wc_format_datetime( $order->get_date_created() ) ) );
+	?>
+		<br>
+	<?php
+		// translators: %s is the formatted order total amount (including currency).
+		printf( esc_html__( 'Order Total: %s', 'wpowp' ), esc_html( $formatted_order_total ) );
+	?>
 </p>
 
 <h3><?php esc_html( $email_heading ); ?></h3>
@@ -61,8 +80,9 @@ $formatted_order_total = sprintf(
 	<?php esc_html_e( 'If you have already made the payment or believe this status change is in error, please contact our support team:', 'wpowp' ); ?>
 </p>
 <p>
-	<?php
+	<?php	
 	printf(
+		// translators: 1: admin email address, 2: WooCommerce store phone number.
 		esc_html__( 'Email: %1$s | Phone: %2$s', 'wpowp' ),
 		esc_html( get_option( 'admin_email' ) ),
 		esc_html( get_option( 'woocommerce_store_phone' ) )

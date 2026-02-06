@@ -36,6 +36,7 @@ jQuery(function ($) {
             (1 == group.removeTaxRatesSwitch) ? groupElement.find('.removeTaxRatesSwitch').attr('checked', true) : groupElement.find('.removeTaxRatesSwitch').attr('checked', false);
             (1 == group.removeCheckoutPrivacySwitch) ? groupElement.find('.removeCheckoutPrivacySwitch').attr('checked', true) : groupElement.find('.removeCheckoutPrivacySwitch').attr('checked', false);
             (1 == group.removeCheckoutTermsSwitch) ? groupElement.find('.removeCheckoutTermsSwitch').attr('checked', true) : groupElement.find('.removeCheckoutTermsSwitch').attr('checked', false);
+            (1 == group.allowPaymentsSwitch) ? groupElement.find('.allowPaymentsSwitch').attr('checked', true) : groupElement.find('.allowPaymentsSwitch').attr('checked', false);
 
             // Add rules to the group
             $.each(group.rules, function (ruleIndex, rule) {
@@ -498,6 +499,7 @@ jQuery(function ($) {
             var removeTaxRatesSwitch = $(this).find('.removeTaxRatesSwitch').is(':checked') ? 1 : 0;
             var removeCheckoutPrivacySwitch = $(this).find('.removeCheckoutPrivacySwitch').is(':checked') ? 1 : 0;
             var removeCheckoutTermsSwitch = $(this).find('.removeCheckoutTermsSwitch').is(':checked') ? 1 : 0;
+            var allowPaymentsSwitch = $(this).find('.allowPaymentsSwitch').is(':checked') ? 1 : 0;
 
             var rules = [];
 
@@ -531,12 +533,13 @@ jQuery(function ($) {
 
             data.rules.push({
                 placeOrderSwitch: placeOrderSwitch,
+                allowPaymentsSwitch: allowPaymentsSwitch,
                 requestQuoteSwitch: requestQuoteSwitch,
                 orderButtonTextSwitch: orderButtonTextSwitch,
                 removeShippingFieldsRatesSwitch: removeShippingFieldsRatesSwitch,
                 removeTaxRatesSwitch: removeTaxRatesSwitch,
                 removeCheckoutPrivacySwitch: removeCheckoutPrivacySwitch,
-                removeCheckoutTermsSwitch: removeCheckoutTermsSwitch,
+                removeCheckoutTermsSwitch: removeCheckoutTermsSwitch,                
                 rules: rules
             });
         });
@@ -557,6 +560,19 @@ jQuery(function ($) {
                 toastr.error('Some error occurred, please try again in some time!', 'Error!');
             }
         });
+    });
+
+    // Make the placeOrderSwitch and allowPaymentsSwitch mutually exclusive
+    $(document).on('change', '.placeOrderSwitch', function() {
+        if ($(this).is(':checked')) {
+            $(this).closest('.rule-group').find('.allowPaymentsSwitch').prop('checked', false);
+        }
+    });
+        
+    $(document).on('change', '.allowPaymentsSwitch', function() {
+        if ($(this).is(':checked')) {
+            $(this).closest('.rule-group').find('.placeOrderSwitch').prop('checked', false);
+        }
     });
 
 });

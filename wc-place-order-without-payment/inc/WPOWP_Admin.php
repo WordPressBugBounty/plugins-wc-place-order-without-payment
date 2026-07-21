@@ -14,6 +14,7 @@ use WPOWP\Traits\Get_Instance;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Helper as WPOWP_Helper;
 use WPOWP\Modules\PendingPaymentNotification as WPOWP_PendingPaymentEmail;
+use WPOWP\Modules\PreOrderGateway as WPOWP_PreOrderPay;
 
 if ( ! class_exists( 'WPOWP_Admin' ) ) {
 	class WPOWP_Admin {
@@ -48,7 +49,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				add_filter( 'woocommerce_email_classes', array( $this, 'add_order_notification_email' ) );
 				// Trigger the custom email when order status changes to pending
 				add_action( 'woocommerce_order_status_changed', array( $this, 'send_order_notification' ), 10, 3 );
-			}
+			}			
 		}
 
 		/**
@@ -98,7 +99,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				'hide_price'                       => 'no',
 				'hide_additional_info_tab'         => 'no',
 				'hide_prices_sitewide'             => 'no',
-				'order_status_quote' => 'pending'
+				'order_status_quote'               => 'pending',
 			);
 		}
 
@@ -217,6 +218,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 
 				wp_enqueue_script( 'wpowp-bootstrap', WPOWP_URL . 'assets/js/bootstrap.min.js', array( 'jquery' ), WPOWP_VERSION, true );
 				wp_enqueue_script( 'selectWoo' );
+				wp_enqueue_script( 'wpowp-focusmode', WPOWP_URL . 'assets/js/focusmode.js', array( 'jquery' ), '1.0.0', true );
 
 				if ( isset( $_GET['tab'] ) && 'rules' === $_GET['tab'] ) { // phpcs:ignore
 					wp_enqueue_script( 'wpowp-rules', WPOWP_URL . 'assets/js/wpowp-rules.js', array( 'wp-api' ), WPOWP_VERSION, true );
@@ -322,11 +324,11 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		 */
 		public function send_order_notification( $order_id, $old_status, $new_status ) {
 			// Check if the new status is 'pending'
-			if ( $new_status === 'pending' ) {
+			if ( 'checkout-draft' !== $old_status && 'pending' === $new_status ) {
 				$email = new WPOWP_PendingPaymentEmail();
 				$email->trigger( $order_id );
 			}
-		}
+		}		
 	}
 
 }

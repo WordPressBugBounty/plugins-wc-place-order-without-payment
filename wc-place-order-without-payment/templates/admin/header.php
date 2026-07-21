@@ -21,6 +21,7 @@ if ( $wpowp_fs->is_paying_or_trial() ) {
 }
 
 $div .= '<li class="nav-item"><a class="nav-link ' . '" target="_blank"  href="https://nitin247.com/docs/place-order-without-payment">' . __( 'Documentation', 'wpowp' ) . '</a>&nbsp;</li>&nbsp;';
+$div .= '<li class="nav-item py-1"><button type ="button" class="btn btn-light btn-sm" data-bs-toggle="focusmode" title="' . esc_attr( 'Enter Focus Mode', 'wpowp' ) . '"><i class="dashicons dashicons-editor-expand"></i></button>&nbsp;</li>&nbsp;';
 
 $div .= "</nav>";
 

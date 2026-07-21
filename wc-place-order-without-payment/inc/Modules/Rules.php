@@ -2,7 +2,7 @@
 
 /**
  * @package     WPOWP
- * @since       4.1.6
+ * @since       2.7.3
  */
 
 namespace WPOWP\Modules;
@@ -20,7 +20,7 @@ class Rules {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @since 4.1.6
 	 */
 	public function __construct() {
@@ -160,97 +160,81 @@ class Rules {
 	public function process_rules( $saved_rules = array() ) {
 
 		// if Saved rules is empty, return
-		if ( empty( $saved_rules ) ) {
+		if ( empty( $saved_rules ) || ! is_array( $saved_rules ) ) {
 			return;
 		}
 
-		// Get the cart object
-		$cart = WC()->cart;
-
-		if ( ! $cart ) {
+		if ( ! WC()->cart ) {
 			return;
 		}
 
-		// Get the cart details
-		$cart_data = array(
-			'payment_method'    => '', // No payment method at cart stage
-			'product_name'      => array_reduce(
-				WC()->cart->get_cart(),
-				function ( $carry, $cart_item ) {
-					$product_id = $cart_item['product_id'];
-					$carry[ $product_id ] = $cart_item['data']->get_name(); // Get product name
-					return $carry;
-				},
-				array()
-			),
-			'product_variation' => array_reduce(
-				WC()->cart->get_cart(),
-				function ( $carry, $cart_item ) {
-					$product = $cart_item['data']; // Get product from cart item
+		// ---- Request-level cache ----
+		static $cache = array();
+		$cart_hash    = WC()->cart->get_cart_hash();
 
-					// Check if the product is a variation
-					if ( $product && $product->is_type( 'variation' ) ) {
-						$variation_id = $product->get_id();
-						$carry[ $variation_id ] = $product->get_attributes(); // Get variation attributes
-					}
-					return $carry;
-				},
-				array()
-			),
-			'product_category'  => array_reduce(
-				WC()->cart->get_cart(),
-				function ( $carry, $cart_item ) {
-					$product_id = $cart_item['product_id'];
-					$terms = get_the_terms( $product_id, 'product_cat' );
-					if ( $terms && ! is_wp_error( $terms ) ) {
-						foreach ( $terms as $term ) {
-							$carry[] = $term->name;
-						}
-					}
-					return $carry;
-				},
-				array()
-			),
-			'product_tag'       => array_reduce(
-				WC()->cart->get_cart(),
-				function ( $carry, $cart_item ) {
-					$product_id = $cart_item['product_id'];
-					$terms = get_the_terms( $product_id, 'product_tag' );
-					if ( $terms && ! is_wp_error( $terms ) ) {
-						foreach ( $terms as $term ) {
-							$carry[] = $term->name;
-						}
-					}
-					return $carry;
-				},
-				array()
-			),
-			'user_role'         => wp_get_current_user()->roles,
-		);
+		if ( isset( $cache[ $cart_hash ] ) ) {
+			return $cache[ $cart_hash ];
+		}
+
+		// ---- Normalize cart ONCE ----
+		$cart_data = $this->build_cart_data();
+
+		if ( empty( $cart_data ) ) {
+			return;
+		}
+
+		// foreach ( $saved_rules as $rule_group ) {
+
+		// $switch                                    = array();
+		// $switch['placeOrderSwitch']                = ( isset( $rule_group['placeOrderSwitch'] ) ) ? $rule_group['placeOrderSwitch'] : '';
+		// $switch['allowPaymentsSwitch']             = ( isset( $rule_group['allowPaymentsSwitch'] ) ) ? $rule_group['allowPaymentsSwitch'] : '';
+		// $switch['requestQuoteSwitch']              = ( isset( $rule_group['requestQuoteSwitch'] ) ) ? $rule_group['requestQuoteSwitch'] : '';
+		// $switch['orderButtonTextSwitch']           = ( isset( $rule_group['orderButtonTextSwitch'] ) ) ? $rule_group['orderButtonTextSwitch'] : '';
+		// $switch['removeShippingFieldsRatesSwitch'] = ( isset( $rule_group['removeShippingFieldsRatesSwitch'] ) ) ? $rule_group['removeShippingFieldsRatesSwitch'] : '';
+		// $switch['removeTaxRatesSwitch']            = ( isset( $rule_group['removeTaxRatesSwitch'] ) ) ? $rule_group['removeTaxRatesSwitch'] : '';
+		// $switch['removeCheckoutPrivacySwitch']     = ( isset( $rule_group['removeCheckoutPrivacySwitch'] ) ) ? $rule_group['removeCheckoutPrivacySwitch'] : '';
+		// $switch['removeCheckoutTermsSwitch']       = ( isset( $rule_group['removeCheckoutTermsSwitch'] ) ) ? $rule_group['removeCheckoutTermsSwitch'] : '';
+
+		// $rules = $rule_group['rules'];
+
+		// Process the rules based on condition
+		// $valid = $this->evaluate_rules( $rules, $cart_data );
+
+		// Redirect or disable payment methods if valid
+		// if ( $valid ) {
+		// return $switch;
+		// }
+		// }
 
 		// Loop through each group of rules
-		foreach ( $saved_rules as $rule_group ) {
+		foreach ( $saved_rules as $group ) {
 
-			$switch                                    = array();
-			$switch['placeOrderSwitch']                = ( isset( $rule_group['placeOrderSwitch'] ) ) ? $rule_group['placeOrderSwitch'] : '';
-			$switch['allowPaymentsSwitch']             = ( isset( $rule_group['allowPaymentsSwitch'] ) ) ? $rule_group['allowPaymentsSwitch'] : '';
-			$switch['requestQuoteSwitch']              = ( isset( $rule_group['requestQuoteSwitch'] ) ) ? $rule_group['requestQuoteSwitch'] : '';
-			$switch['orderButtonTextSwitch']           = ( isset( $rule_group['orderButtonTextSwitch'] ) ) ? $rule_group['orderButtonTextSwitch'] : '';
-			$switch['removeShippingFieldsRatesSwitch'] = ( isset( $rule_group['removeShippingFieldsRatesSwitch'] ) ) ? $rule_group['removeShippingFieldsRatesSwitch'] : '';
-			$switch['removeTaxRatesSwitch']            = ( isset( $rule_group['removeTaxRatesSwitch'] ) ) ? $rule_group['removeTaxRatesSwitch'] : '';
-			$switch['removeCheckoutPrivacySwitch']     = ( isset( $rule_group['removeCheckoutPrivacySwitch'] ) ) ? $rule_group['removeCheckoutPrivacySwitch'] : '';
-			$switch['removeCheckoutTermsSwitch']       = ( isset( $rule_group['removeCheckoutTermsSwitch'] ) ) ? $rule_group['removeCheckoutTermsSwitch'] : '';
-
-			$rules = $rule_group['rules'];
-
-			// Process the rules based on condition
-			$valid = $this->evaluate_rules( $rules, $cart_data );
-
-			// Redirect or disable payment methods if valid
-			if ( $valid ) {				
-				return $switch;
+			if ( empty( $group['rules'] ) ) {
+				continue;
 			}
+
+			if ( ! $this->evaluate_rules( $group['rules'], $cart_data ) ) {
+				continue;
+			}
+
+			// Normalize switches once
+			$result = array(
+				'placeOrderSwitch'                => ! empty( $group['placeOrderSwitch'] ),
+				'allowPaymentsSwitch'             => ! empty( $group['allowPaymentsSwitch'] ),
+				'requestQuoteSwitch'              => ! empty( $group['requestQuoteSwitch'] ),
+				'orderButtonTextSwitch'           => ! empty( $group['orderButtonTextSwitch'] ),
+				'removeShippingFieldsRatesSwitch' => ! empty( $group['removeShippingFieldsRatesSwitch'] ),
+				'removeTaxRatesSwitch'            => ! empty( $group['removeTaxRatesSwitch'] ),
+				'removeCheckoutPrivacySwitch'     => ! empty( $group['removeCheckoutPrivacySwitch'] ),
+				'removeCheckoutTermsSwitch'       => ! empty( $group['removeCheckoutTermsSwitch'] ),
+			);
+
+			$cache[ $cart_hash ] = $result;
+			return $result;
 		}
+
+		$cache[ $cart_hash ] = null;
+		return;
 	}
 
 	/**
@@ -348,5 +332,66 @@ class Rules {
 			default:
 				return false;
 		}
+	}
+
+	/**
+	 * Build cart data for evaluation.
+	 *
+	 * @return array Cart data.
+	 */
+	private function build_cart_data() {
+
+		$items = WC()->cart->get_cart();
+		if ( empty( $items ) ) {
+			return array();
+		}
+
+		$data = array(
+			'product_name'      => array(),
+			'product_variation' => array(),
+			'product_category'  => array(),
+			'product_tag'       => array(),
+			'user_role'         => wp_get_current_user()->roles,
+		);
+
+		foreach ( $items as $item ) {
+
+			if ( empty( $item['data'] ) ) {
+				continue;
+			}
+
+			$product    = $item['data'];
+			$product_id = (int) $item['product_id'];
+
+			// Name
+			$data['product_name'][ $product_id ] = $product->get_name();
+
+			// Variation
+			if ( $product->is_type( 'variation' ) ) {
+				$data['product_variation'][ $product->get_id() ] = $product->get_attributes();
+			}
+
+			// Categories
+			$cats = get_the_terms( $product_id, 'product_cat' );
+			if ( $cats && ! is_wp_error( $cats ) ) {
+				foreach ( $cats as $cat ) {
+					$data['product_category'][ $cat->term_id ] = $cat->name;
+				}
+			}
+
+			// Tags
+			$tags = get_the_terms( $product_id, 'product_tag' );
+			if ( $tags && ! is_wp_error( $tags ) ) {
+				foreach ( $tags as $tag ) {
+					$data['product_tag'][ $tag->term_id ] = $tag->name;
+				}
+			}
+		}
+
+		// Normalize
+		$data['product_category'] = array_values( $data['product_category'] );
+		$data['product_tag']      = array_values( $data['product_tag'] );
+
+		return $data;
 	}
 }

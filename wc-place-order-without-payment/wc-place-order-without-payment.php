@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.7.5
+ * Version:           2.7.6
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -25,9 +25,9 @@
  * Domain Path:       /languages/
  * Requires PHP:      7.4
  * Requires at least: 6.2
- * Tested up to: 6.9
+ * Tested up to: 7.0
  * WC requires at least: 8.2
- * WC tested up to: 10.5
+ * WC tested up to: 10.9
  * Requires Plugins:  woocommerce
  */
 
@@ -47,8 +47,9 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
+use WPOWP\Modules\PreOrderGateway as WPOWP_PreOrderPay;
 
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.4' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.6' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -57,6 +58,7 @@ defined( 'WPOWP_PLUGIN_SLUG' ) or define( 'WPOWP_PLUGIN_SLUG', 'wpowp-settings' 
 defined( 'WPOWP_PLUGIN_PREFIX' ) or define( 'WPOWP_PLUGIN_PREFIX', 'wpowp-' );
 defined( 'WPOWP_FORM_PREFIX' ) or define( 'WPOWP_FORM_PREFIX', 'wpowp_' );
 defined( 'WPOWP_TEMPLATES' ) or define( 'WPOWP_TEMPLATES', WPOWP_DIR . 'templates/' );
+
 
 if ( ! function_exists( 'WPOWP\wpowp_fs' ) ) {
 	// Create a helper function for easy SDK access.
@@ -131,12 +133,14 @@ if ( ! class_exists( 'WPOWP_Loader' ) ) {
 			// Add action links
 			add_action( 'plugin_action_links_' . plugin_basename( __FILE__ ), array( $this, 'action_links' ) );
 			// Run Plugin
-			add_action( 'wp_loaded', array( $this, 'run_plugin' ), 20 );
+			// add_action( 'wp_loaded', array( $this, 'run_plugin' ), 20 );
 			add_action( 'init', array( $this, 'init_admin' ), 20 );
 			// HPOS Compatibility
 			add_action( 'before_woocommerce_init', array( $this, 'declare_compatibility' ), 30 );
 			// Add WC_Email on WooCommerce Init
 			add_action( 'woocommerce_init', array( $this, 'load_wc_email_class' ) );
+			// Add Pre Order Gateway
+			add_filter( 'woocommerce_payment_gateways', array( $this, 'add_pre_order_gateway' ) );
 		}
 
 		/**
@@ -171,37 +175,14 @@ if ( ! class_exists( 'WPOWP_Loader' ) ) {
 		 */
 		public function run_plugin() {
 
-			// Init Front
+			// ensure singletons
 			WPOWP_Front::get_instance();
-
-			// Init API
 			WPOWP_Rest_API::get_instance();
 
-			$options = WPOWP_Admin::get_instance()->get_settings();
-
-			if ( wpowp_fs()->is_paying_or_trial() ) {
-				// Skip Payment for premium only
-				$saved_rules   = WPOWP_Rest_API::get_instance()->fetch_rules( 0 );
-				$process_rules = WPOWP_Rules::get_instance()->process_rules( $saved_rules );
-
-				// Show/Hide Quote button
-				$quote_only     = filter_var( $options['quote_only'], FILTER_VALIDATE_BOOLEAN );
-				$show_quote_btn = $quote_only || ( ! empty( $process_rules ) && $process_rules['requestQuoteSwitch'] );
-
-				if ( $show_quote_btn ) {
-					$this->show_quote_button();
-				}
-
-					// Skip Payment based on Saved Rules
-				if ( ! empty( $process_rules ) && $process_rules['placeOrderSwitch'] ) {
-					$this->skip_payment();
-				}
-			}
-
-			// Skip Payment sitewide
-			if ( ! empty( filter_var( $options['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) && ! is_admin() ) {
-				$this->skip_payment();
-			}
+			// Register Store API injector EARLY
+			$this->register_rest_injector();
+			// Call Disable Payment
+			$this->disable_payment();
 		}
 
 		/**
@@ -260,40 +241,6 @@ if ( ! class_exists( 'WPOWP_Loader' ) ) {
 		}
 
 		/**
-		 * Skip Payment.
-		 *
-		 * @return void
-		 * @since 2.3
-		 */
-		public function skip_payment() {
-			// Get required settings and rules once
-			$admin_instance   = WPOWP_Admin::get_instance();
-			$saved_rules      = WPOWP_Rest_API::get_instance()->fetch_rules( 0 );
-			$process_rules    = WPOWP_Rules::get_instance()->process_rules( $saved_rules );
-			$enabled_sitewide = filter_var( $admin_instance->get_settings( 'enable_sitewide' ), FILTER_VALIDATE_BOOLEAN );
-
-			// Determine whether to disable payment
-			$skip_payment   = ! empty( $process_rules ) && $process_rules['placeOrderSwitch'];
-			$allow_payments = ! empty( $process_rules ) && $process_rules['allowPaymentsSwitch'];
-
-			// Disable payment if necessary
-			if ( $enabled_sitewide ) {
-				$this->disable_payment();
-			}
-
-			if ( wpowp_fs()->is_paying_or_trial() ) {
-				// Allow payments as per Rules
-				if ( $allow_payments ) {
-					return;
-				}
-				// Disable payment if necessary for premium version
-				if ( $skip_payment ) {
-					$this->disable_payment();
-				}
-			}
-		}
-
-		/**
 		 * Show Quote Button.
 		 *
 		 * @return void
@@ -317,34 +264,68 @@ if ( ! class_exists( 'WPOWP_Loader' ) ) {
 		 */
 		public function disable_payment() {
 
-			if ( true === $this->exclude_elements() ) {
+			$skip_payment = false;
+			$options      = WPOWP_Admin::get_instance()->get_settings();
+
+			if ( wpowp_fs()->is_paying_or_trial() ) {
+
+				// Skip Payment for premium only
+				$process_rules = wpowp_process_rules();
+				$allow_payment = isset( $process_rules['allowPaymentsSwitch'] ) ? filter_var( $process_rules['allowPaymentsSwitch'], FILTER_VALIDATE_BOOLEAN ) : false;
+
+				// Show/Hide Quote button
+				$quote_only     = filter_var( $options['quote_only'], FILTER_VALIDATE_BOOLEAN );
+				$show_quote_btn = $quote_only || ( ! empty( $process_rules ) && $process_rules['requestQuoteSwitch'] );
+
+				if ( $show_quote_btn ) {
+					$this->show_quote_button();
+				}
+
+				// Skip Payment based on Saved Rules
+				if ( ! empty( $process_rules ) && filter_var( $process_rules['placeOrderSwitch'], FILTER_VALIDATE_BOOLEAN ) ) {
+					$skip_payment = true;
+				}
+			}
+
+			// Allow payment gateways
+			if ( $allow_payment ) {
+					return;
+			}
+
+			// Skip Payment sitewide
+			if ( ! empty( filter_var( $options['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) && ! is_admin() ) {
+				$skip_payment = true;
+			}
+
+			// Skip payment if necessary or Directly disable payment - avoid calling skip_payment() which re-checks rules
+			if ( ! $skip_payment || $this->exclude_elements() ) {
 				return;
 			}
 
-			$remove_shipping                  = WPOWP_Admin::get_instance()->get_settings( 'remove_shipping' );
-			$remove_privacy_policy_text       = WPOWP_Admin::get_instance()->get_settings( 'remove_privacy_policy_text' );
-			$remove_checkout_terms_conditions = WPOWP_Admin::get_instance()->get_settings( 'remove_checkout_terms_conditions' );
+			$remove_shipping                  = $options['remove_shipping'] ?? '';
+			$remove_privacy_policy_text       = $options['remove_privacy_policy_text'] ?? '';
+			$remove_checkout_terms_conditions = $options['remove_checkout_terms_conditions'] ?? '';
 
-			if ( ( isset( $_GET['key'] ) && isset( $_GET['pay_for_order'] ) ) || is_account_page() ) { // phpcs:ignore
+			if ( ( isset( $_GET['key'] ) && isset( $_GET['pay_for_order'] ) ) || is_account_page() ) {
 				return;
 			}
 
 			add_filter( 'woocommerce_cart_needs_payment', '__return_false' );
 			add_filter( 'woocommerce_order_needs_payment', '__return_false' );
-
-			// TODO: Add code to remove selected gateways from Order Pay Page
-			add_filter( 'woocommerce_available_payment_gateways', '__return_empty_array' );
+			// add_filter( 'woocommerce_available_payment_gateways', '__return_empty_array' );
 
 			// Conditionally remove shipping rates
 			if ( true === filter_var( $remove_shipping, FILTER_VALIDATE_BOOLEAN ) ) {
 				add_filter( 'woocommerce_package_rates', '__return_empty_array' );
 				add_filter( 'woocommerce_cart_needs_shipping', '__return_false' );
 			}
-				// Remove checkout privacy text
+
+			// Remove checkout privacy text
 			if ( true === filter_var( $remove_privacy_policy_text, FILTER_VALIDATE_BOOLEAN ) ) {
 				remove_action( 'woocommerce_checkout_terms_and_conditions', 'wc_checkout_privacy_policy_text', 20 );
 			}
-				// Remove checkout terms and condition
+
+			// Remove checkout terms and condition
 			if ( true === filter_var( $remove_checkout_terms_conditions, FILTER_VALIDATE_BOOLEAN ) ) {
 				remove_action( 'woocommerce_checkout_terms_and_conditions', 'wc_terms_and_conditions_page_content', 30 );
 			}
@@ -561,10 +542,140 @@ if ( ! class_exists( 'WPOWP_Loader' ) ) {
 			$processed_rules = WPOWP_Rules::get_instance()->process_rules( $rules );
 			return $processed_rules;
 		}
+
+		/**
+		 * Register REST Injector
+		 *
+		 * Register the very-early REST injector and store-api hooks.
+		 * MUST NOT call code that accesses WC()->cart or session.
+		 */
+		public function register_rest_injector() {
+
+			add_filter(
+				'rest_pre_dispatch',
+				function ( $response, $server, $request ) {
+
+					// Only Store API checkout
+					if ( ! method_exists( $request, 'get_route' ) ) {
+						return $response;
+					}
+
+					if ( strpos( $request->get_route(), '/wc/store/v1/checkout' ) === false ) {
+						return $response;
+					}
+
+					// Load WC Cart
+					if ( is_null( WC()->cart ) ) {
+						wc_load_cart();
+					}
+
+					// EARLY decision (NO CART)
+					if ( ! $this->should_inject_payment_method_early() ) {
+						return $response;
+					}
+
+					// Inject COD so Store API validation passes
+					if ( empty( $request->get_param( 'payment_method' ) ) ) {
+						$request->set_param( 'payment_method', 'wpowp_preorder' );
+					}
+
+					// Flag for later phase
+					$request->set_param( 'wpowp_skip_payment_injected', true );
+
+					return $response;
+				},
+				1,
+				3
+			);
+
+			// LATE phase: order exists, cart is safe
+			add_action(
+				'woocommerce_store_api_checkout_update_order_from_request',
+				array( $this, 'blocks_skip_payment' ),
+				20,
+				2
+			);
+		}
+
+		/**
+		 * Should Inject Payment Method Early
+		 *
+		 * EARLY / SAFE rule evaluation
+		 * Used ONLY to decide whether to inject a payment method.
+		 * Must NOT touch WC()->cart.
+		 */
+		private function should_inject_payment_method_early() {
+
+			// Sitewide option
+			$opts = WPOWP_Admin::get_instance()->get_settings();
+			if ( isset( $opts['enable_sitewide'] ) && filter_var( $opts['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) {
+				return filter_var( $opts['enable_sitewide'], FILTER_VALIDATE_BOOLEAN );
+			}
+
+			// Lightweight rule evaluation (no cart)
+			$process_rules = wpowp_process_rules();
+			$allow_payment = isset( $process_rules['allowPaymentsSwitch'] ) ? filter_var( $process_rules['allowPaymentsSwitch'], FILTER_VALIDATE_BOOLEAN ) : false;
+			$place_order   = isset( $process_rules['placeOrderSwitch'] ) ? filter_var( $process_rules['placeOrderSwitch'], FILTER_VALIDATE_BOOLEAN ) : false;
+
+			// Do not inject payment method
+			if ( $allow_payment ) {
+				return false;
+			}
+
+			return $place_order;
+		}
+
+		/**
+		 * Blocks Skip Payment
+		 *
+		 * Modify the in-memory Store API order to skip payment when rules indicate.
+		 * Hook: woocommerce_store_api_checkout_update_order_from_request
+		 *
+		 * @param WC_Order|WC_Abstract_Order $order
+		 * @param WP_REST_Request|array      $request
+		 */
+		public function blocks_skip_payment( $order, $request ) {
+
+			if ( ! $order || ! is_object( $order ) ) {
+				return;
+			}
+
+			// Injector flag
+			$injected = (
+			$request instanceof WP_REST_Request
+			&& $request->get_param( 'wpowp_skip_payment_injected' )
+			);
+
+			$process_rules = wpowp_process_rules();
+			$place_order   = isset( $process_rules['placeOrderSwitch'] ) ? filter_var( $process_rules['placeOrderSwitch'], FILTER_VALIDATE_BOOLEAN ) : false;
+
+			// Full rules (cart-aware) only run here
+			if ( ! $injected || ! $place_order ) {
+				return;
+			}
+		}
+
+		/**
+		 * Add the PreOrderPay gateway to the list of available payment gateways.
+		 *
+		 * @param array $gateways The list of available payment gateways.
+		 * @return array The list of available payment gateways with the PreOrderPay gateway added.
+		 */
+		public function add_pre_order_gateway( $gateways ) {
+			$gateways[] = WPOWP_PreOrderPay::class;
+			return $gateways;
+		}
 	}
 
 	// Initiate Loader
-	WPOWP_Loader::get_instance();
+	$loader = WPOWP_Loader::get_instance();
+
+	// Register only the REST injector & Store API hooks very early (safe)
+	add_action( 'init', array( $loader, 'register_rest_injector' ), 1 );
+
+	// Run full plugin init later (safe for WC()->cart calls)
+	add_action( 'wp_loaded', array( $loader, 'run_plugin' ), 10 );
+
 
 	if ( ! function_exists( 'wpowp_debug' ) ) {
 		function wpowp_debug( $array, $stop = 0 ) {

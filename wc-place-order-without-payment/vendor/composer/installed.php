@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'neebplugins/wc-place-order-without-payment',
-        'pretty_version' => '2.7.6',
-        'version' => '2.7.6.0',
+        'pretty_version' => '2.7.7',
+        'version' => '2.7.7.0',
         'reference' => null,
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -20,8 +20,8 @@
             'dev_requirement' => false,
         ),
         'neebplugins/wc-place-order-without-payment' => array(
-            'pretty_version' => '2.7.6',
-            'version' => '2.7.6.0',
+            'pretty_version' => '2.7.7',
+            'version' => '2.7.7.0',
             'reference' => null,
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',

@@ -4,8 +4,8 @@ Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: woocommerce, pay later, request quote, b2b, manual orders
 Requires at least: 6.2
 Tested up to: 7.0
-Stable tag: 2.7.6
-Version: 2.7.6
+Stable tag: 2.7.7
+Version: 2.7.7
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -53,7 +53,7 @@ Capture high-intent customers without payment barriers.
 ✔ Flexible for different business models  
 
 💡 Looking for advanced control like conditional rules, automated emails, and quote workflows? Check out the PRO version.
-👉 https://nitin247.com/plugin/woocommerce-place-order-without-payment/?utm_source=wpowp-lite&utm_campaign=wp-repo&utm_medium=readme&utm_term=WPOWP
+👉 <a href="https://nitin247.com/plugin/woocommerce-place-order-without-payment/?utm_source=wpowp-lite&utm_campaign=wp-repo&utm_medium=readme&utm_term=wpowp-cta-1">Go PRO</a>
 
 == How It Works ==
 
@@ -104,11 +104,11 @@ The PRO version unlocks advanced workflows designed for growing stores and B2B u
 
 💡 Perfect for stores handling wholesale orders, manual invoicing, or quote-based sales.
 
-👉 Upgrade to PRO: https://nitin247.com/plugin/woocommerce-place-order-without-payment/?utm_source=wpowp-lite&utm_campaign=wp-repo&utm_medium=readme&utm_term=WPOWP
+👉 Upgrade to PRO: <a href="https://nitin247.com/plugin/woocommerce-place-order-without-payment/?utm_source=wpowp-lite&utm_campaign=wp-repo&utm_medium=readme&utm_term=wpowp-cta-2">Go PRO</a>
 
 == Documentation ==
 
-https://nitin247.com/docs/place-order-without-payment/
+<a href="https://nitin247.com/docs/place-order-without-payment/">https://nitin247.com/docs/place-order-without-payment/</a>
 
 == Installation ==
 
@@ -119,13 +119,16 @@ https://nitin247.com/docs/place-order-without-payment/
 == Support ==
 
 For support, contact: nitin247@outlook.com  
-Or visit: https://nitin247.com/support  
+Or visit: <a href="https://nitin247.com/support">https://nitin247.com/support</a>
 
 == License ==
 
 This plugin is licensed under GPLv2 or later.
 
 == Changelog ==
+
+= 2.7.7 =
+WC Tested upto 10.9
 
 = 2.7.6 =
 SDK + Readme Update
@@ -235,5 +238,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.7.6 =
-SDK + Readme Update
+= 2.7.7 =
+WC Tested upto 10.9

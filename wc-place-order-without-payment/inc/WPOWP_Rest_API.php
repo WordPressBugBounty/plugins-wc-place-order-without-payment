@@ -270,28 +270,28 @@
 				return new \WP_REST_Response( $tyrules, 200 );
 			}
 
-			public function search_product() {
+			public function search_product( \WP_REST_Request $request ) {
 
-				$keyword         = isset( $_GET['search'] ) ? sanitize_text_field( $_GET['search'] ) : '';
-				$variations_only = isset( $_GET['variations_only'] ) ? sanitize_text_field( $_GET['variations_only'] ) : false;
+				$keyword         = $request->get_param( 'search' ) ?: '';
+				$variations_only = $request->get_param( 'variations_only' ) ?: false;
 
 				$products = Helper::search_product( $keyword, $variations_only );
 				return $products;
 			}
 
-			public function search_category() {
+			public function search_category( \WP_REST_Request $request ) {
 
-				$keyword   = isset( $_GET['search'] ) ? sanitize_text_field( $_GET['search'] ) : '';
-				$post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : 'post';
+				$keyword   = $request->get_param( 'search' ) ?: '';
+				$post_type = $request->get_param( 'post_type' ) ?: 'product';
 
 				$products = Helper::search_categories( $keyword, $post_type );
 				return $products;
 			}
 
-			public function search_tags() {
+			public function search_tags( \WP_REST_Request $request ) {
 
-				$keyword   = isset( $_GET['search'] ) ? sanitize_text_field( $_GET['search'] ) : '';
-				$post_type = isset( $_GET['post_type'] ) ? sanitize_text_field( $_GET['post_type'] ) : 'post';
+				$keyword   = $request->get_param( 'search' ) ?: '';
+				$post_type = $request->get_param( 'post_type' ) ?: 'product';
 
 				$products = Helper::search_tags( $keyword, $post_type );
 				return $products;

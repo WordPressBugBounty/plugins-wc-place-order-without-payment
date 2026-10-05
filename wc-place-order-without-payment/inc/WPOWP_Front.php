@@ -10,7 +10,6 @@
 namespace WPOWP;
 
 use WPOWP\Traits\Get_Instance;
-use WPOWP\Modules\PreOrderGateway as WPOWP_PreOrderPay;
 
 if ( ! class_exists( 'WPOWP_Front' ) ) {
 	class WPOWP_Front {
@@ -30,12 +29,18 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 			$this->handle_front( $this->settings );
 			// Update Order status
 			add_action( 'woocommerce_thankyou', array( $this, 'update_order_status' ), 10, 1 );
+			// Suppress the "Paid" marking WooCommerce core auto-applies when payment is skipped
+			add_action( 'woocommerce_payment_complete', array( $this, 'suppress_paid_marking' ), 10, 1 );
 			// Hide Place Order button
 			add_filter( 'woocommerce_order_button_html', array( $this, 'hide_place_order_button' ) );
 			// Enqueue styles and scripts
 			add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_styles' ) );
 			// Add Order Meta on Submission
 			add_action( 'woocommerce_checkout_create_order', array( $this, 'add_quote_order_meta' ), 10, 2 );
+			// Mark Quote Requests in the Orders list
+			add_filter( 'woocommerce_admin_order_buyer_name', array( $this, 'add_quote_badge_to_order_list' ), 10, 2 );
+			// Mark Quote Requests on the Edit Order screen
+			add_action( 'woocommerce_admin_order_data_after_order_details', array( $this, 'add_quote_badge_to_order_detail' ) );
 		}
 
 		/**
@@ -221,8 +226,8 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 						$option_quote_status = \WPOWP\WPOWP_Admin::get_instance()->get_settings( 'order_status_quote' );
 						// Update Order status
 						$order->update_status( $option_quote_status );
-						// Delete the custom meta after status update
-						$order->delete_meta_data( '_wpowp_order_type' );
+						// Keep the '_wpowp_order_type' meta so admin screens can
+						// show this order was a Quote request, not a normal order.
 						$order->save();
 					}
 					return;
@@ -257,6 +262,57 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 					$order->update_status( $status );
 				}
 			}
+		}
+
+		/**
+		 * Suppress the "Paid" marking WooCommerce core applies automatically
+		 * whenever $order->needs_payment() is false (the same code path used
+		 * for genuine $0 orders). WPOWP forces needs_payment() to false for
+		 * skipped-payment orders, so core calls $order->payment_complete(),
+		 * which sets date_paid and adds a "Payment complete." note even
+		 * though no money was actually collected — unlike e.g. Cash on
+		 * Delivery, which never marks an order paid.
+		 *
+		 * Only acts on orders with no payment method set, i.e. orders that
+		 * went through WPOWP's skip-payment flow (real gateways always have
+		 * a payment_method, so they're left untouched).
+		 *
+		 * @param  int $order_id
+		 * @return void
+		 */
+		public function suppress_paid_marking( $order_id ) {
+
+			$order = wc_get_order( $order_id );
+
+			if ( ! $order || ! empty( $order->get_payment_method() ) ) {
+				return;
+			}
+
+			if ( $order->get_date_paid( 'edit' ) ) {
+				$order->set_date_paid( null );
+			}
+
+			// Status-change emails triggered by payment_complete()'s own save()
+			// may log notes with the same timestamp after the "Payment
+			// complete." note, so it isn't reliably the most recent — scan
+			// a few instead of assuming index 0.
+			$notes = wc_get_order_notes(
+				array(
+					'order_id' => $order_id,
+					'limit'    => 5,
+					'orderby'  => 'date_created',
+					'order'    => 'DESC',
+				)
+			);
+
+			foreach ( $notes as $note ) {
+				if ( __( 'Payment complete.', 'woocommerce' ) === $note->content ) {
+					wc_delete_order_note( $note->id );
+					break;
+				}
+			}
+
+			$order->save();
 		}
 
 		/**
@@ -417,6 +473,8 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 				add_filter( 'woocommerce_cart_item_subtotal', '__return_empty_string' );
 				add_filter( 'woocommerce_cart_subtotal', '__return_empty_string' );
 				add_filter( 'woocommerce_order_formatted_line_subtotal', '__return_empty_string' );
+				add_filter( 'woocommerce_cart_total', '__return_empty_string' );
+				add_filter( 'woocommerce_get_order_item_totals', '__return_empty_array' );
 				add_filter( 'woocommerce_cart_totals_order_total_html', '__return_empty_string' );
 				add_filter( 'woocommerce_get_formatted_order_total', '__return_empty_string' );
 
@@ -434,16 +492,16 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 		}
 
 		// Remove price/subtotal columns from cart table
-		public function remove_price_columns_cart( $product_name, $cart_item, $cart_item_key ) { // phpcs:ignore
-			// Just return name without extra price info
-			return $product_name;
-		}
+		// public function remove_price_columns_cart( $product_name, $cart_item, $cart_item_key ) { // phpcs:ignore
+		// Just return name without extra price info
+		// return $product_name;
+		// }
 
 		// Remove price/subtotal columns from checkout table
-		public function remove_price_columns_checkout( $quantity_html, $cart_item, $cart_item_key ) { // phpcs:ignore
-			// Return just quantity
-			return $quantity_html;
-		}
+		// public function remove_price_columns_checkout( $quantity_html, $cart_item, $cart_item_key ) { // phpcs:ignore
+		// Return just quantity
+		// return $quantity_html;
+		// }
 
 		/**
 		 * Hide totals JS
@@ -506,7 +564,46 @@ if ( ! class_exists( 'WPOWP_Front' ) ) {
 			$order_type = isset( $_POST['wpowp_order_type'] ) ? sanitize_text_field( $_POST['wpowp_order_type'] ) : '';
 			if ( 'quote' === $order_type ) {
 				$order->add_meta_data( '_wpowp_order_type', 'quote' );
+				// Payment is skipped for Quote requests (see WPOWP_Loader::disable_payment()) -
+				// clear the submitted payment method so the order reflects that no payment was taken.
+				$order->set_payment_method( '' );
+				$order->set_payment_method_title( '' );
 			}
+		}
+
+		/**
+		 * Append a "Quote Requested" marker next to the buyer name in the
+		 * WooCommerce > Orders list, so quote orders are distinguishable
+		 * from normal orders at a glance. Plain text only - this value is
+		 * escaped by WooCommerce after the filter runs, so no markup here.
+		 *
+		 * @param  string    $buyer
+		 * @param  \WC_Order $order
+		 * @return string
+		 */
+		public function add_quote_badge_to_order_list( $buyer, $order ) {
+
+			if ( $order instanceof \WC_Order && 'quote' === $order->get_meta( '_wpowp_order_type' ) ) {
+				$buyer = trim( $buyer . ' ' . sprintf( '(%s)', __( 'Quote Requested', 'wpowp' ) ) );
+			}
+
+			return $buyer;
+		}
+
+		/**
+		 * Show a "Quote Requested" badge on the Edit Order screen when the
+		 * order came from the Request Quote flow.
+		 *
+		 * @param  \WC_Order $order
+		 * @return void
+		 */
+		public function add_quote_badge_to_order_detail( $order ) {
+
+			if ( ! ( $order instanceof \WC_Order ) || 'quote' !== $order->get_meta( '_wpowp_order_type' ) ) {
+				return;
+			}
+
+			echo '<p class="form-field form-field-wide wpowp-quote-requested"><span style="display:inline-block;padding:4px 10px;border-radius:3px;background:#f0b849;color:#1d2327;font-size:12px;font-weight:600;">' . esc_html__( 'Quote Requested', 'wpowp' ) . '</span></p>';
 		}
 	}
 }

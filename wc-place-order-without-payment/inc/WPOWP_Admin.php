@@ -14,7 +14,6 @@ use WPOWP\Traits\Get_Instance;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Helper as WPOWP_Helper;
 use WPOWP\Modules\PendingPaymentNotification as WPOWP_PendingPaymentEmail;
-use WPOWP\Modules\PreOrderGateway as WPOWP_PreOrderPay;
 
 if ( ! class_exists( 'WPOWP_Admin' ) ) {
 	class WPOWP_Admin {
@@ -49,7 +48,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				add_filter( 'woocommerce_email_classes', array( $this, 'add_order_notification_email' ) );
 				// Trigger the custom email when order status changes to pending
 				add_action( 'woocommerce_order_status_changed', array( $this, 'send_order_notification' ), 10, 3 );
-			}			
+			}
 		}
 
 		/**
@@ -148,7 +147,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 		 */
 		public function load_admin( $tab, $append_php = true ) {
 
-			$allowed_tabs  = array( 'admin/settings', 'admin/rules', 'admin/quote-only' );
+			$allowed_tabs  = array( 'admin/settings', 'admin/rules', 'admin/quote-only', 'admin/pro' );
 			$template_file = ( true === $append_php ) ? WPOWP_TEMPLATES . $tab . '.php' : WPOWP_TEMPLATES . $tab;
 
 			if ( ! in_array( $tab, $allowed_tabs, true ) || ! file_exists( $template_file ) ) {
@@ -328,7 +327,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 				$email = new WPOWP_PendingPaymentEmail();
 				$email->trigger( $order_id );
 			}
-		}		
+		}
 	}
 
 }

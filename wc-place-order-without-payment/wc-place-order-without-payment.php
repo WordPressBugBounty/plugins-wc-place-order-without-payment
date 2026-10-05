@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.7.7
+ * Version:           2.7.8
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -25,9 +25,9 @@
  * Domain Path:       /languages/
  * Requires PHP:      7.4
  * Requires at least: 6.2
- * Tested up to: 7.0
+ * Tested up to: 7.1
  * WC requires at least: 8.2
- * WC tested up to: 10.9
+ * WC tested up to: 11.1
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -44,8 +44,7 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
-use WPOWP\Modules\PreOrderGateway as WPOWP_PreOrderPay;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.7' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.8' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -118,8 +117,28 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             add_action( 'before_woocommerce_init', array($this, 'declare_compatibility'), 30 );
             // Add WC_Email on WooCommerce Init
             add_action( 'woocommerce_init', array($this, 'load_wc_email_class') );
-            // Add Pre Order Gateway
-            add_filter( 'woocommerce_payment_gateways', array($this, 'add_pre_order_gateway') );
+            add_action(
+                'woocommerce_store_api_checkout_update_order_from_request',
+                array($this, 'blocks_skip_payment'),
+                10,
+                2
+            );
+            // Add this
+            add_filter( 'woocommerce_cart_needs_payment', array($this, 'cart_needs_payment'), 999 );
+            add_filter(
+                'woocommerce_order_needs_payment',
+                array($this, 'order_needs_payment'),
+                999,
+                2
+            );
+            // Detect the Blocks "Request Quote" checkbox before WC's own
+            // needs_payment check runs, so it can be forced to skip payment.
+            add_filter(
+                'rest_request_before_callbacks',
+                array($this, 'maybe_force_quote_skip_payment'),
+                10,
+                3
+            );
         }
 
         /**
@@ -136,10 +155,6 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
                 add_action( 'admin_notices', array($this, 'wc_not_active') );
                 return;
             }
-            if ( $this->is_woocommerce_blocks_checkout() ) {
-                add_action( 'admin_notices', array($this, 'wc_block_checkout') );
-                return;
-            }
             load_plugin_textdomain( 'wpowp', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
         }
 
@@ -152,8 +167,6 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             // ensure singletons
             WPOWP_Front::get_instance();
             WPOWP_Rest_API::get_instance();
-            // Register Store API injector EARLY
-            $this->register_rest_injector();
             // Call Disable Payment
             $this->disable_payment();
         }
@@ -215,9 +228,85 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         public function show_quote_button() {
             $admin_instance = WPOWP_Admin::get_instance();
             $quote_btn_pos = $admin_instance->get_settings( 'quote_button_postion' );
-            // Add actions if the quote button should be shown
+            // Classic checkout
             add_action( 'woocommerce_review_order_' . $quote_btn_pos, array($this, 'quote_button') );
             add_action( 'wc_ajax_checkout', array($this, 'disable_payment'), 0 );
+            // Blocks checkout
+            $this->register_quote_checkout_field();
+        }
+
+        /**
+         * Register the "Request a Quote" checkbox field on the WooCommerce
+         * Blocks checkout. WooCommerce Blocks does not support a "button"
+         * field type, so this checkbox is registered to carry the quote
+         * request through the Store API, and assets/js/wpowp-quote-block.js
+         * hides it and renders an actual button in its place - the same way
+         * the classic checkout shows a button rather than a checkbox.
+         *
+         * No CSS is added for this field or its replacement button; both
+         * inherit the theme's native WooCommerce Blocks styling, same as the
+         * classic checkout button relies only on the theme's ".button" style.
+         *
+         * @return void
+         * @since 2.7.8
+         */
+        public function register_quote_checkout_field() {
+            if ( !function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
+                return;
+            }
+            $quote_btn_text = WPOWP_Admin::get_instance()->get_settings( 'quote_button_text' );
+            $quote_btn_text = apply_filters( 'wpowp_translate_quote_only_text', $quote_btn_text );
+            $quote_btn_pos = WPOWP_Admin::get_instance()->get_settings( 'quote_button_postion' );
+            woocommerce_register_additional_checkout_field( array(
+                'id'                         => 'wpowp/request-quote',
+                'label'                      => $quote_btn_text,
+                'location'                   => 'order',
+                'type'                       => 'checkbox',
+                'required'                   => false,
+                'show_in_order_confirmation' => false,
+            ) );
+            $quote_block_js_path = WPOWP_DIR . 'assets/js/wpowp-quote-block.js';
+            wp_enqueue_script(
+                'wpowp-quote-block',
+                WPOWP_URL . 'assets/js/wpowp-quote-block.js',
+                array(),
+                ( file_exists( $quote_block_js_path ) ? filemtime( $quote_block_js_path ) : WPOWP_VERSION ),
+                true
+            );
+            wp_localize_script( 'wpowp-quote-block', 'wpowpQuoteBlock', array(
+                'fieldId'  => 'order-wpowp-request-quote',
+                'label'    => $quote_btn_text,
+                'position' => $quote_btn_pos,
+            ) );
+        }
+
+        /**
+         * Inspect the raw Store API checkout request for the "Request Quote"
+         * checkbox before WooCommerce evaluates whether payment is needed -
+         * the checkbox's value is not yet available as order meta at that
+         * point, so it must be read directly from the REST request here.
+         *
+         * Hook: rest_request_before_callbacks
+         *
+         * @param mixed            $response
+         * @param array            $handler
+         * @param \WP_REST_Request $request
+         * @return mixed
+         * @since 2.7.8
+         */
+        public function maybe_force_quote_skip_payment( $response, $handler, $request ) {
+            if ( !$request instanceof \WP_REST_Request ) {
+                return $response;
+            }
+            if ( 0 !== strpos( $request->get_route(), '/wc/store/v1/checkout' ) || 'POST' !== $request->get_method() ) {
+                return $response;
+            }
+            $additional_fields = (array) $request->get_param( 'additional_fields' );
+            if ( !empty( $additional_fields['wpowp/request-quote'] ) ) {
+                add_filter( 'woocommerce_cart_needs_payment', '__return_false', 1000 );
+                add_filter( 'woocommerce_order_needs_payment', '__return_false', 1000 );
+            }
+            return $response;
         }
 
         /**
@@ -230,6 +319,12 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             $skip_payment = false;
             $allow_payment = false;
             $options = WPOWP_Admin::get_instance()->get_settings();
+            // A customer explicitly submitted the classic checkout's "Request
+            // Quote" button - always skip payment for this submission,
+            // regardless of the "Allow Payments" rule, since a quote is
+            // never an immediate purchase.
+            $quote_requested = isset( $_POST['wpowp_order_type'] ) && 'quote' === sanitize_text_field( wp_unslash( $_POST['wpowp_order_type'] ) );
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing
             if ( wpowp_fs()->is_paying_or_trial() ) {
                 // Skip Payment for premium only
                 $process_rules = wpowp_process_rules();
@@ -245,8 +340,11 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
                     $skip_payment = true;
                 }
             }
+            if ( $quote_requested ) {
+                $skip_payment = true;
+            }
             // Allow payment gateways
-            if ( $allow_payment ) {
+            if ( $allow_payment && !$quote_requested ) {
                 return;
             }
             // Skip Payment sitewide
@@ -410,38 +508,6 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         }
 
         /**
-         * Is WooCommerce Blocks Checkout
-         *
-         * @return bool
-         * @since 2.6.1
-         */
-        public function is_woocommerce_blocks_checkout() {
-            return \Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils::is_checkout_block_default();
-        }
-
-        /**
-         * WC Block Checkout.
-         *
-         * @return void
-         * @since 2.6.1
-         */
-        public function wc_block_checkout() {
-            $document_url = 'https://nitin247.com/docs/place-order-without-payment/no-payment-method-provided-error/?utm_source=wpowp&utm_campaign=wp-install&utm_medium=plugin&utm_term=WPOWP';
-            echo '<div class="notice notice-error is-dismissible"><p>';
-            // translators: 1: opening <strong> tag, 2: closing </strong> tag, 5: opening <a> tag linking to documentation, 6: closing </a> tag.
-            printf(
-                esc_html__( 'Place Order without payment for WooCommerce requires Classic Checkout.The %1$s[woocommerce_checkout]%2$s shortcode must be placed on Checkout page. Read documentation %5$sNo Payment Method Provided Error%6$s here.', 'wpowp' ),
-                '<strong>',
-                '</strong>',
-                '<a href="http://wordpress.org/extend/plugins/woocommerce/">',
-                '</a>',
-                '<a href="' . esc_url( $document_url ) . '">',
-                '</a>'
-            );
-            echo '</p></div>';
-        }
-
-        /**
          * Declare Compatibility
          *
          * @return void
@@ -478,75 +544,6 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         }
 
         /**
-         * Register REST Injector
-         *
-         * Register the very-early REST injector and store-api hooks.
-         * MUST NOT call code that accesses WC()->cart or session.
-         */
-        public function register_rest_injector() {
-            add_filter(
-                'rest_pre_dispatch',
-                function ( $response, $server, $request ) {
-                    // Only Store API checkout
-                    if ( !method_exists( $request, 'get_route' ) ) {
-                        return $response;
-                    }
-                    if ( strpos( $request->get_route(), '/wc/store/v1/checkout' ) === false ) {
-                        return $response;
-                    }
-                    // Load WC Cart
-                    if ( is_null( WC()->cart ) ) {
-                        wc_load_cart();
-                    }
-                    // EARLY decision (NO CART)
-                    if ( !$this->should_inject_payment_method_early() ) {
-                        return $response;
-                    }
-                    // Inject COD so Store API validation passes
-                    if ( empty( $request->get_param( 'payment_method' ) ) ) {
-                        $request->set_param( 'payment_method', 'wpowp_preorder' );
-                    }
-                    // Flag for later phase
-                    $request->set_param( 'wpowp_skip_payment_injected', true );
-                    return $response;
-                },
-                1,
-                3
-            );
-            // LATE phase: order exists, cart is safe
-            add_action(
-                'woocommerce_store_api_checkout_update_order_from_request',
-                array($this, 'blocks_skip_payment'),
-                20,
-                2
-            );
-        }
-
-        /**
-         * Should Inject Payment Method Early
-         *
-         * EARLY / SAFE rule evaluation
-         * Used ONLY to decide whether to inject a payment method.
-         * Must NOT touch WC()->cart.
-         */
-        private function should_inject_payment_method_early() {
-            // Sitewide option
-            $opts = WPOWP_Admin::get_instance()->get_settings();
-            if ( isset( $opts['enable_sitewide'] ) && filter_var( $opts['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) {
-                return filter_var( $opts['enable_sitewide'], FILTER_VALIDATE_BOOLEAN );
-            }
-            // Lightweight rule evaluation (no cart)
-            $process_rules = wpowp_process_rules();
-            $allow_payment = ( isset( $process_rules['allowPaymentsSwitch'] ) ? filter_var( $process_rules['allowPaymentsSwitch'], FILTER_VALIDATE_BOOLEAN ) : false );
-            $place_order = ( isset( $process_rules['placeOrderSwitch'] ) ? filter_var( $process_rules['placeOrderSwitch'], FILTER_VALIDATE_BOOLEAN ) : false );
-            // Do not inject payment method
-            if ( $allow_payment ) {
-                return false;
-            }
-            return $place_order;
-        }
-
-        /**
          * Blocks Skip Payment
          *
          * Modify the in-memory Store API order to skip payment when rules indicate.
@@ -559,33 +556,73 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
             if ( !$order || !is_object( $order ) ) {
                 return;
             }
-            // Injector flag
-            $injected = $request instanceof WP_REST_Request && $request->get_param( 'wpowp_skip_payment_injected' );
             $process_rules = wpowp_process_rules();
             $place_order = ( isset( $process_rules['placeOrderSwitch'] ) ? filter_var( $process_rules['placeOrderSwitch'], FILTER_VALIDATE_BOOLEAN ) : false );
-            // Full rules (cart-aware) only run here
-            if ( !$injected || !$place_order ) {
-                return;
+            // Quote requested via the Blocks checkout "Request a Quote" field.
+            $quote_requested = wc_string_to_bool( $order->get_meta( '_wc_other/wpowp/request-quote', true ) );
+            if ( $quote_requested ) {
+                $order->update_meta_data( '_wpowp_order_type', 'quote' );
+            }
+            if ( $place_order || $quote_requested ) {
+                $order->set_payment_method( '' );
+                $order->set_payment_method_title( '' );
+                $order->save();
             }
         }
 
         /**
-         * Add the PreOrderPay gateway to the list of available payment gateways.
+         * Determine whether the cart requires payment.
          *
-         * @param array $gateways The list of available payment gateways.
-         * @return array The list of available payment gateways with the PreOrderPay gateway added.
+         * @param bool $needs_payment Whether payment is required.
+         * @return bool
          */
-        public function add_pre_order_gateway( $gateways ) {
-            $gateways[] = WPOWP_PreOrderPay::class;
-            return $gateways;
+        public function cart_needs_payment( $needs_payment ) {
+            // Don't interfere in admin requests.
+            if ( is_admin() && !wp_doing_ajax() ) {
+                return $needs_payment;
+            }
+            $options = WPOWP_Admin::get_instance()->get_settings();
+            $skip_payment = false;
+            $allow_payment = false;
+            // PRO Rules.
+            if ( wpowp_fs()->is_paying_or_trial() ) {
+                $process_rules = wpowp_process_rules();
+                $allow_payment = !empty( $process_rules['allowPaymentsSwitch'] ) && filter_var( $process_rules['allowPaymentsSwitch'], FILTER_VALIDATE_BOOLEAN );
+                if ( !empty( $process_rules['placeOrderSwitch'] ) && filter_var( $process_rules['placeOrderSwitch'], FILTER_VALIDATE_BOOLEAN ) ) {
+                    $skip_payment = true;
+                }
+            }
+            // Sitewide setting.
+            if ( !$skip_payment && !empty( $options['enable_sitewide'] ) && filter_var( $options['enable_sitewide'], FILTER_VALIDATE_BOOLEAN ) ) {
+                $skip_payment = true;
+            }
+            // Rules explicitly allow payment.
+            if ( $allow_payment ) {
+                return $needs_payment;
+            }
+            // Excluded products/categories.
+            if ( $this->exclude_elements() ) {
+                return $needs_payment;
+            }
+            return ( $skip_payment ? false : $needs_payment );
+        }
+
+        /**
+         * Determine whether an order requires payment.
+         *
+         * @param bool     $needs_payment Whether payment is required.
+         * @param WC_Order $order         Order object.
+         * @return bool
+         */
+        public function order_needs_payment( $needs_payment, $order ) {
+            // Reuse the cart logic.
+            return $this->cart_needs_payment( $needs_payment );
         }
 
     }
 
     // Initiate Loader
     $loader = WPOWP_Loader::get_instance();
-    // Register only the REST injector & Store API hooks very early (safe)
-    add_action( 'init', array($loader, 'register_rest_injector'), 1 );
     // Run full plugin init later (safe for WC()->cart calls)
     add_action( 'wp_loaded', array($loader, 'run_plugin'), 10 );
     if ( !function_exists( 'wpowp_debug' ) ) {

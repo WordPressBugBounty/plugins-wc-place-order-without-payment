@@ -1,11 +1,11 @@
 === Place Order Without Payment for WooCommerce ===
 Contributors: nitin247
 Donate link: https://nitin247.com/buy-me-a-coffee
-Tags: woocommerce, pay later, request quote, b2b, manual orders
+Tags: wholesale, woocommerce wholesale, pay later, request quote, b2b
 Requires at least: 6.2
-Tested up to: 7.0
-Stable tag: 2.7.7
-Version: 2.7.7
+Tested up to: 7.1
+Stable tag: 2.7.8
+Version: 2.7.8
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -127,6 +127,9 @@ This plugin is licensed under GPLv2 or later.
 
 == Changelog ==
 
+= 2.7.8 =
+Fix No Payment methos Error for Block Checkout
+
 = 2.7.7 =
 WC Tested upto 10.9
 
@@ -238,5 +241,5 @@ Stable initial release.
 
 == Upgrade Notice ==
 
-= 2.7.7 =
-WC Tested upto 10.9
+= 2.7.8 =
+FIX Block Checkout

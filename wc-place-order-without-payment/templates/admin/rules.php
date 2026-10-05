@@ -13,9 +13,9 @@ global $wpowp_fs;
 $rules_instance = WPOWP_Rules::get_instance();
 ?>
 
-<div class="container">
+<div class="pt-2">
 		
-	<h1><?php esc_html_e( 'Rules', 'wpowp' ); ?></h1>
+	<div class="fs-3"><?php esc_html_e( 'Rules', 'wpowp' ); ?></div>
 	<p><?php esc_html_e( 'The options below facilitate the configuration of Place Order Without Pyment for WooCommerce PRO, enhancing customer engagement.', 'wpowp' ); ?></p>
 
 	<div id="group-container"></div>
@@ -33,7 +33,7 @@ $rules_instance = WPOWP_Rules::get_instance();
 		<?php } else { ?>
 		<!-- Upgrade to Pro Button -->
 		<span>
-			<a href="<?php echo esc_url( $wpowp_fs->get_upgrade_url() ); ?>" class="button button-primary" target="_blank">
+			<a href="<?php echo esc_url( $wpowp_fs->get_upgrade_url() ); ?>" class="button button-primary">
 				<?php esc_html_e( 'Upgrade to Pro', 'wpowp' ); ?>
 			</a>
 		</span>		

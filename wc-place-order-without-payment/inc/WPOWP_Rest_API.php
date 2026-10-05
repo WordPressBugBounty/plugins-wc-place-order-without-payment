@@ -238,7 +238,20 @@
 				$data = array();
 				if ( is_array( $posted_data ) ) {
 					foreach ( $posted_data as $post_array ) {
-						$data[ str_replace( WPOWP_FORM_PREFIX, '', $post_array['name'] ) ] = sanitize_text_field( $post_array['value'] );
+						$key   = str_replace( WPOWP_FORM_PREFIX, '', $post_array['name'] );
+						$value = sanitize_text_field( $post_array['value'] );
+
+						// Unchecked checkboxes only submit their "_hidden" fallback field.
+						// Map it back to the real key, but never let it clobber a value
+						// already posted by the checkbox itself (checked state).
+						if ( '_hidden' === substr( $key, -7 ) ) {
+							$key = substr( $key, 0, -7 );
+							if ( array_key_exists( $key, $data ) ) {
+								continue;
+							}
+						}
+
+						$data[ $key ] = $value;
 					}
 					return $data;
 				} else {

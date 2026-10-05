@@ -284,24 +284,47 @@ button.toast-close-button {
 
 /* Adjust the height of the Select2 selection box */
 .select2-container .select2-selection--single {
-    height: calc(1.5em + 0.75rem + 2px) !important;    
-    border: 1px solid #ced4da;    
-    border-radius: 0.25rem;    
+    height: calc(1.5em + 0.75rem + 2px) !important;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
 }
 
 /* Adjust the line height of the rendered text */
 .select2-container .select2-selection--single .select2-selection__rendered {
-    line-height: 1.5 !important;    
+    line-height: 1.5 !important;
 }
 
 /* Adjust the arrow icon */
 .select2-container .select2-selection--single .select2-selection__arrow {
-    height: calc(1.5em + 0.75rem + 2px) !important;    
-    right: 10px;    
+    height: calc(1.5em + 0.75rem + 2px) !important;
+    right: 10px;
 }
 
 /* Optional: Adjust the dropdown results */
 .select2-container--default .select2-results__options {
-    max-height: 200px;    
-    overflow-y: auto;    
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.wpowp-pro-panel .offcanvas-body {
+    padding-bottom: 90px;
+}
+
+.wpowp-pro-panel .offcanvas-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: #fff;
+}
+
+body.wp-admin .offcanvas.wpowp-pro-panel {
+    top: 32px;
+    height: calc(100vh - 32px);
+}
+
+@media screen and (max-width: 782px) {
+    body.wp-admin .offcanvas.wpowp-pro-panel {
+        top: 46px;
+        height: calc(100vh - 46px);
+    }
 }

@@ -151,7 +151,7 @@ if ( ! class_exists( 'WPOWP_Admin' ) ) {
 			$template_file = ( true === $append_php ) ? WPOWP_TEMPLATES . $tab . '.php' : WPOWP_TEMPLATES . $tab;
 
 			if ( ! in_array( $tab, $allowed_tabs, true ) || ! file_exists( $template_file ) ) {
-				wp_die( esc_html_e( 'Invalid path', 'wpowp' ) );
+				wp_die( esc_html__( 'Invalid path', 'wpowp' ) );
 			}
 
 			require_once $template_file; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable

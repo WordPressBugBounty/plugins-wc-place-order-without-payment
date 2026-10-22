@@ -16,7 +16,7 @@
  * Plugin Name:       Place Order Without Payment for WooCommerce
  * Plugin URI:        https://nitin247.com/plugin/woocommerce-place-order-without-payment/
  * Description:       Place Order Without Payment for WooCommerce will allow users to place orders directly.This plugin will customize checkout page and offers to direct place order without payment.
- * Version:           2.7.8
+ * Version:           2.7.9
  * Author:            Nitin Prakash
  * Author URI:        https://nitin247.com/
  * License:           GPL-2.0+
@@ -27,7 +27,7 @@
  * Requires at least: 6.2
  * Tested up to: 7.1
  * WC requires at least: 8.2
- * WC tested up to: 11.1
+ * WC tested up to: 11.2
  * Requires Plugins:  woocommerce
  */
 // If this file is called directly, abort.
@@ -44,7 +44,7 @@ use WPOWP\WPOWP_Front;
 use WPOWP\WPOWP_Rest_API;
 use WPOWP\Modules\Rules as WPOWP_Rules;
 use WPOWP\Traits\Get_Instance;
-defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.8' );
+defined( 'WPOWP_VERSION' ) or define( 'WPOWP_VERSION', '2.7.9' );
 defined( 'WPOWP_FILE' ) or define( 'WPOWP_FILE', __FILE__ );
 defined( 'WPOWP_BASE' ) or define( 'WPOWP_BASE', plugin_basename( WPOWP_FILE ) );
 defined( 'WPOWP_DIR' ) or define( 'WPOWP_DIR', plugin_dir_path( WPOWP_FILE ) );
@@ -62,6 +62,8 @@ if ( !function_exists( 'WPOWP\\wpowp_fs' ) ) {
             if ( !defined( 'WP_FS__PRODUCT_4030_MULTISITE' ) ) {
                 define( 'WP_FS__PRODUCT_4030_MULTISITE', true );
             }
+            // Freemius SDK loaded via composer.
+            include_once WPOWP_DIR . '/vendor/freemius/wordpress-sdk/start.php';
             $wpowp_fs = fs_dynamic_init( array(
                 'id'               => '4030',
                 'slug'             => 'wc-place-order-without-payment',
@@ -579,6 +581,13 @@ if ( !class_exists( 'WPOWP_Loader' ) ) {
         public function cart_needs_payment( $needs_payment ) {
             // Don't interfere in admin requests.
             if ( is_admin() && !wp_doing_ajax() ) {
+                return $needs_payment;
+            }
+            // Don't override payment requirements when a customer is paying
+            // for an existing order (e.g. retrying a failed/pending payment
+            // from My Account) - mirrors the guard in disable_payment().
+            if ( isset( $_GET['key'] ) && isset( $_GET['pay_for_order'] ) || is_account_page() ) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 return $needs_payment;
             }
             $options = WPOWP_Admin::get_instance()->get_settings();

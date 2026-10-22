@@ -4,8 +4,8 @@ Donate link: https://nitin247.com/buy-me-a-coffee
 Tags: wholesale, woocommerce wholesale, pay later, request quote, b2b
 Requires at least: 6.2
 Tested up to: 7.1
-Stable tag: 2.7.8
-Version: 2.7.8
+Stable tag: 2.7.9
+Version: 2.7.9
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -126,6 +126,12 @@ Or visit: <a href="https://nitin247.com/support">https://nitin247.com/support</a
 This plugin is licensed under GPLv2 or later.
 
 == Changelog ==
+
+= 2.7.9 =
+Remove Pre-Order gateway code, preserve Blocks compatibility
+Merge "Hide Prices Sitewide" into General Settings
+Fix sitewide-toggle saving and false "Paid" status
+Fix Pay for Order and Block checkout issues
 
 = 2.7.8 =
 Fix No Payment methos Error for Block Checkout

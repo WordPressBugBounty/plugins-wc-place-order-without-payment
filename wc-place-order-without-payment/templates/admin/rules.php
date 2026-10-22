@@ -14,13 +14,18 @@ $rules_instance = WPOWP_Rules::get_instance();
 ?>
 
 <div class="pt-2">
-		
-	<div class="fs-3"><?php esc_html_e( 'Rules', 'wpowp' ); ?></div>
-	<p><?php esc_html_e( 'The options below facilitate the configuration of Place Order Without Pyment for WooCommerce PRO, enhancing customer engagement.', 'wpowp' ); ?></p>
+
+	<h2 class="h5 mb-1 d-flex align-items-center gap-2">
+		<?php esc_html_e( 'Rules', 'wpowp' ); ?>
+		<?php if ( ! $wpowp_fs->is_paying_or_trial() ) : ?>
+			<span class="badge rounded-pill wpowp-badge-locked"><?php esc_html_e( 'PRO', 'wpowp' ); ?></span>
+		<?php endif; ?>
+	</h2>
+	<p class="wpowp-text-muted small mb-3"><?php esc_html_e( 'The options below facilitate the configuration of Place Order Without Payment for WooCommerce PRO, enhancing customer engagement.', 'wpowp' ); ?></p>
 
 	<div id="group-container"></div>
 
-	<div id="button-container" style="display:none;">
+	<div id="button-container" class="d-flex flex-wrap gap-2" style="display:none;">
 		<!-- Add New Rule Group Button -->
 		<button type="button" class="button button-secondary" id="add-group-btn">
 			<?php esc_html_e( 'Add New Rule', 'wpowp' ); ?>
